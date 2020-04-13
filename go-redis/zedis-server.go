@@ -9,7 +9,11 @@ import "net"
 import "log"
 import "time"
 import "Monica/go-redis/core"
+import "Monica/go-redis/persistence"
 
+const (
+	DefaultAofFile = "./zedis.aof"
+)
 
 //创建服务端实例
 var zedis = new(core.Server)
@@ -22,9 +26,6 @@ func main() {
 	//os.Args 参数0：文件全路径名 参数1：实际参数 ...
 	cmdLen := len(os.Args)
 	cmdArgs := os.Args
-	
-	fmt.Println(cmdLen)
-	fmt.Println(cmdArgs)
 
 	//无命令参数输出帮助
 	if cmdLen < 2 {
@@ -79,6 +80,8 @@ func initServer() {
 	initDb() //初始化db
 	zedis.Start = time.Now().UnixNano() / 1000000 //记录开始运行时间
 
+	zedis.AofFilename = DefaultAofFile
+
 	getCommand := &core.ZedisCommand{Name: "get", Proc: core.GetCommand}
 	setCommand := &core.ZedisCommand{Name: "set", Proc: core.SetCommand}
 
@@ -86,6 +89,8 @@ func initServer() {
 		"get": getCommand,
 		"set": setCommand,
 	}
+
+	LoadData()
 }
 
 //初始化DB
@@ -95,13 +100,11 @@ func initDb() {
 		zedis.Db[i] = new(core.ZedisDb)
 		zedis.Db[i].Dict = make(map[string]*core.ZedisObject, 100)
 	}
-
-	fmt.Println("init db -->", zedis.Db)
 }
 
 // 处理请求
 func handle(conn net.Conn) {
-	c := zedis.CreateClient(conn)
+	c := zedis.CreateClient()
 	for {
 		err := c.ReadQueryFromClient(conn)
 
@@ -138,11 +141,6 @@ func readQueryFromClient(conn net.Conn) (buf string, err error) {
 	return buf, nil
 }
 
-// 处理客户端请求信息
-func processInputBuffer(buff string) string {
-	return buff + "from Mars"
-}
-
 func signalHandler(c chan os.Signal) {
 	for s := range c {
 		switch s {
@@ -152,6 +150,22 @@ func signalHandler(c chan os.Signal) {
 				fmt.Println("other", s)
 		}
 	}
+}
+
+
+func LoadData() {
+	fmt.Println("开始加载磁盘数据到内存")
+	c := zedis.CreateClient()
+	pros := persistence.ReadAof(zedis.AofFilename)
+	for _, v := range pros {
+		c.QueryBuf = string(v)
+		err := c.ProcessInputBuffer()
+		if err != nil {
+			log.Println("ProcessInputBuffer err", err)
+		}
+		zedis.ProcessCommand(c)
+	}
+	fmt.Println("加载磁盘数据到内存结束")
 }
 
 func ExitFunc()  {

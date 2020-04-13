@@ -6,7 +6,9 @@ import "os"
 import "bufio"
 import "net"
 import "log"
+import "strings"
 import "Monica/go-redis/proto"
+
 
 
 func main() {
@@ -33,7 +35,7 @@ func main() {
 	for {
 		fmt.Print(commandStart)
 		inputCmd, _ := reader.ReadString('\n')
-
+		inputCmd = strings.Replace(inputCmd, "\n", "", -1)
 		send2Server(inputCmd, conn)
 
 		buff := make([]byte, 1024)

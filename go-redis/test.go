@@ -5,10 +5,32 @@ import "fmt"
 import "strings"
 import "bytes"
 import "Monica/go-redis/proto"
+import "io/ioutil"
+import "os"
 
 
 func main() {
-	test3()
+	test4()
+}
+
+func test4() {
+	f, err := os.Open("F:\\go_dev\\src\\Monica\\go-redis\\zedis.aof")
+	if err != nil {
+		fmt.Println("aof file open failed" + err.Error())
+	}
+	defer f.Close()
+	content, err := ioutil.ReadFile("F:\\go_dev\\src\\Monica\\go-redis\\zedis.aof")
+	if err != nil {
+		fmt.Println("aof file read failed" + err.Error())
+	}
+	ret := bytes.Split(content, []byte{'*'})
+	var pros = make([]string, len(ret)-1)
+	for k, v := range ret[1:] {
+		v := append(v[:0], append([]byte{'*'}, v[0:]...)...)
+		pros[k] = string(v)
+		fmt.Println(pros[k])
+	}
+	
 }
 
 func test3() {
@@ -18,11 +40,12 @@ func test3() {
 	}
 
 	decoder := proto.NewDecoder(bytes.NewReader([]byte(p)))
-	if resp, err := decoder.DecodeMultiBulk(); err == nil {
-		for k, s := range resp {
-			fmt.Println(k,string(s.Value))
-		}
-	}
+	fmt.Println(decoder.DecodeMultiBulk())
+	// if resp, err := decoder.DecodeMultiBulk(); err == nil {
+	// 	for k, s := range resp {
+	// 		fmt.Println(k,string(s.Value))
+	// 	}
+	// }
 }
 
 func test2() {

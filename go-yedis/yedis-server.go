@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
 	"flag"
 	"fmt"
@@ -8,6 +9,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -16,7 +18,7 @@ const (
 )
 
 //创建服务端实例
-var zedis = new(core.Server)
+var yedis = new(core.YedisServer)
 
 func main() {
 
@@ -70,10 +72,45 @@ func main() {
 
 //处理连接请求
 func handle(conn net.Conn) {
+	//通过服务器给新的请求创建一个连接
 	c := yedis.CreateClient()
+	for {
+		//从连接中读取命令，并写入到Client对象中
+		err := c.ReadCommandFromClient(conn)
+		if err != nil {
+			log.Println("ReadCommandFromClient err", err)
+			return
+		}
+
+		//解析命令到Client的Argv中
+		err = c.ProcessCommandInfo()
+		if err != nil {
+			log.Println("ProcessCommandInfo err", err)
+			return
+		}
+
+		//执行命令
+		yedis.ExecuteCommand(c)
+
+
+	}
 }
 
 //初始化服务端实例
 func initServer() {
+	yedis.Pid = os.Getpid() //获取进程ID
+	yedis.DbNum = 16 //配置db数量
+	initDb() //初始化db
+	yedis.StatStartTime = time.Now().UnixNano() / 1000000 //记录开始运行时间
 
 }
+
+//初始化DB
+func initDb() {
+	yedis.ServerDb = make([]*core.YedisDb, yedis.DbNum)
+	for i:=0; i<yedis.DbNum; i++ {
+		yedis.ServerDb[i] = new(core.YedisDb)
+		yedis.ServerDb[i].Dict = make(map[string]*core.YedisObject, 100)
+	}
+}
+

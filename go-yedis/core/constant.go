@@ -12,4 +12,10 @@ const (
 	OBJ_ENCODING_EMBSTR     = 8  /* Embedded sds string encoding */
 	OBJ_ENCODING_QUICKLIST  = 9  /* Encoded as linked list of ziplists */
 	OBJ_ENCODING_STREAM     = 10 /* Encoded as a radix tree of listpacks */
+
+	OBJ_STRING = 0
+	OBJ_LIST   = 1
+	OBJ_SET    = 2
+	OBJ_ZSET   = 3
+	OBJ_HASH   = 4
 )

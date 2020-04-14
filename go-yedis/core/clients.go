@@ -1,4 +1,4 @@
-package entity
+package core
 
 //
 //RedisClient原结构体地址：https://github.com/antirez/redis/blob/30724986659c6845e9e48b601e36aa4f4bca3d30/src/server.h#L765

@@ -1,4 +1,4 @@
-package entity
+package core
 
 //服务端结构体
 //结构体存储Yedis服务器的所有信息，包括但不限于数据库，配置参数,
@@ -11,7 +11,7 @@ type YedisServer struct {
 	Pid int //主进程的PID编号
 	ConfigFile string //配置文件绝对路径
 	DbNum int //数据库的数量，可以通过yedis.conf配置，默认16个
-	yedisDb []*YedisDb //储存数据库的数组
+	ServerDb []*YedisDb //储存数据库的数组
 
 	//serverCron函数执行频率,最小值1，最大值500，Redis-3.0.0默认是10，代表每秒执行十次serverCron函数
 	//serverCron函数执行类似清除过期键，处理超时连接等任务

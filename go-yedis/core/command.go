@@ -1,4 +1,4 @@
-package entity
+package core
 
 // Yedis的命令结构体，主要定义命令名称，命令处理函数和命令标志等
 type YedisCommand struct {

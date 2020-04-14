@@ -1,6 +1,4 @@
-package entity
-
-import "Monica/go-yedis/core"
+package core
 
 // ZedisObject 是对特定类型的数据的包装
 type YedisObject struct {
@@ -14,7 +12,7 @@ type YedisObject struct {
 func CreateObject(objectType int, ptr interface{}) (o *YedisObject) {
 	o = new(YedisObject)
 	o.ObjectType = objectType
-	o.Encoding = core.OBJ_ENCODING_RAW
+	o.Encoding = OBJ_ENCODING_RAW
 	o.Ptr = ptr
 	o.RefCount = 1
 	//TODO LRU开发

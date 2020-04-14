@@ -1,20 +1,15 @@
 package utils
 
 import (
+	"github.com/Unknwon/goconfig"
 	"log"
 	"os"
-	"github.com/Unknwon/goconfig"
 )
 
-const (
-	//yedis配置文件路径，debug时需要全路径
-	configPath = "yedis.conf"
-)
-
-func ReadConfig() (NetConfig, DbConfig, AofConfig){
+func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	//加载基础配置文件
 	cfg, err := goconfig.LoadConfigFile(configPath)
-	if err != nil{
+	if err != nil {
 		panic("读取配置文件错误")
 	}
 	//获取网络相关配置
@@ -65,16 +60,16 @@ type NetConfig struct {
 
 //数据库配置结构体
 type DbConfig struct {
-	DbDatabases int
-	DbDbfilename string
-	DbSavetime int
-	DbSavenumber int
+	DbDatabases   int
+	DbDbfilename  string
+	DbSavetime    int
+	DbSavenumber  int
 	DbRequirepass string
 }
 
 //网络配置结构体
 type AofConfig struct {
-	AofAppendonly string
+	AofAppendonly     string
 	AofAppendfilename string
-	AofAppendfsync string
+	AofAppendfsync    string
 }

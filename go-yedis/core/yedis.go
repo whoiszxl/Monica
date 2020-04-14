@@ -15,7 +15,7 @@ import (
 func (s *YedisServer) CreateClient() (c *YedisClients) {
 	c = new(YedisClients)
 	c.Name = string(rand.Intn(10))
-	c.Db = s.yedisDb[0]
+	//c.Db = s.yedisDb[0]
 	c.Argv = make([]*YedisObject, 5)
 	c.Argc = 5
 	c.QueryBuf = ""
@@ -60,7 +60,7 @@ func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 		os.Exit(1)
 	}
 
-	cmd := lookupCommand(commandName, s)
+	cmd := LookupCommand(commandName, s)
 	if cmd != nil {
 		c.Cmd = cmd
 		call(c, s)
@@ -87,7 +87,7 @@ func call(c *YedisClients, s *YedisServer) {
 
 
 // 查找命令是否支持
-func lookupCommand(name string, s *YedisServer) *YedisCommand {
+func LookupCommand(name string, s *YedisServer) *YedisCommand {
 	if cmd, ok := s.Commands[name]; ok {
 		return cmd
 	}

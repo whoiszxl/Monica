@@ -39,10 +39,11 @@ type YedisServer struct {
 
 	/* AOF persistence持久化 */
 	AofEnabled int //是否开启Aof
-	AofState int //aof状态，[0: OFF] [1: ON] [2: WAIT_REWRITE]
+	AofState string //aof状态，[0: OFF] [1: ON] [2: WAIT_REWRITE]
 	AofFileName string //aof文件名
 	AofCurrentSize int //aof文件当前大小
 	AofBuf []string //aof缓冲区，在进入事件循环前写入
+	AofSync string //更新模式：everysec: 每秒同步一次（折中，默认值，多用此配） no：表示等操作系统进行数据缓存同步到磁盘(效率高，不安全)  always：表示每次更新操作后手动调用fsync()将数据写到磁盘（效率低，安全，一般不采用）
 
 
 	/* 仅用于统计使用的字段，仅取部分 */

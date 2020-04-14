@@ -96,12 +96,25 @@ func handle(conn net.Conn) {
 	}
 }
 
-//初始化服务端实例
-func initServer() {
+//初始化服务端实例, 将yedis.conf配置写入server实例
+func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig utils.AofConfig, configPath string) {
 	yedis.Pid = os.Getpid() //获取进程ID
-	yedis.DbNum = 16 //配置db数量
+	yedis.DbNum = dbConfig.DbDatabases //配置db数量
+	yedis.RdbFileName = dbConfig.DbDbfilename
+	yedis.AofFileName = aofConfig.AofAppendfilename
+	if aofConfig.AofAppendonly == "no" {
+		yedis.AofEnabled = 0
+	}else {
+		yedis.AofEnabled = 1
+	}
+	yedis.AofState = aofConfig.AofAppendonly
+	yedis.AofSync = aofConfig.AofAppendfsync
+
 	initDb() //初始化db
 	yedis.StatStartTime = time.Now().UnixNano() / 1000000 //记录开始运行时间
+	yedis.ConfigFile = configPath
+
+
 
 }
 

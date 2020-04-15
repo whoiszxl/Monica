@@ -42,25 +42,25 @@ func main() {
 
 	//获取配置
 	netConfig, dbConfig, aofConfig := utils.ReadConfig(configPath)
-	fmt.Println(netConfig)
-	fmt.Println(dbConfig)
-	fmt.Println(aofConfig)
+	fmt.Println("初始化yedis.conf网络参数" , netConfig)
+	fmt.Println("初始化yedis.conf数据库参数" , dbConfig)
+	fmt.Println("初始化yedis.confAOF持久化参数" , aofConfig)
 
 	//读取命令行输入的ip和端口,并将命令行获取的值回写
 	var netBind = flag.String("ip", netConfig.NetBind, "redis服务端IP")
-	var netPort = flag.Int("port", netConfig.NetPort, "redis服务端PORT")
+	var netPort = flag.String("port", netConfig.NetPort, "redis服务端PORT")
 	flag.Parse()
 	netConfig.NetBind = *netBind
 	netConfig.NetPort = *netPort
 
-	host := *netBind + ":" + string(*netPort)
+	host := *netBind + ":" + *netPort
 	log.Println("Redis实例化地址：" + host)
 
 	//监听退出事件做相应处理
 	utils.ExitHandler()
 
 	//初始化服务端实例
-	initServer()
+	initServer(netConfig, dbConfig, aofConfig, configPath)
 
 	//初始化网络监听并延时关闭
 	netListener, err := net.Listen("tcp", host)
@@ -95,14 +95,23 @@ func handle(conn net.Conn) {
 		err = c.ProcessCommandInfo()
 		if err != nil {
 			log.Println("ProcessCommandInfo err", err)
-			return
+			continue
 		}
 
 		//执行命令
 		yedis.ExecuteCommand(c)
 
+		//响应客户端
+		response2Client(conn, c)
 
 	}
+}
+
+// 响应返回给客户端
+func response2Client(conn net.Conn, c *core.YedisClients) {
+	_, err := conn.Write([]byte(c.Reply))
+	//log.Println("响应的response字节数为：", responseSize)
+	utils.ErrorVerify("消息响应客户端失败", err, false)
 }
 
 //初始化服务端实例, 将yedis.conf配置写入server实例
@@ -141,21 +150,22 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 	//6. 系统硬件信息
 	memInfo, err := mem.VirtualMemory() //获取机器内存信息
-	utils.ErrorVerify("获取机器内存信息失败", err)
+	utils.ErrorVerify("获取机器内存信息失败", err, true)
 	yedis.SystemAllMemorySize = memInfo.Total     //机器总内存大小 单位：b
 	yedis.SystemAvailableSize = memInfo.Available //机器可用内存大小 单位：b
 	yedis.SystemUsedSize = memInfo.Used           //机器已用内存大小 单位：b
 	yedis.SystemUsedPercent = memInfo.UsedPercent //机器已用内存百分比
 
 	percent, err := cpu.Percent(time.Second, false)
-	utils.ErrorVerify("获取机器CPU信息失败", err)
+	utils.ErrorVerify("获取机器CPU信息失败", err, true)
 	yedis.SystemCpuPercent = percent[0] //CPU使用百分比情况
 
 	//初始化服务支持命令
 	getCommand := &core.YedisCommand{Name: "get", CommandProc: command.GetCommand}
+	setCommand := &core.YedisCommand{Name: "set", CommandProc: command.SetCommand}
 	yedis.Commands = map[string]*core.YedisCommand {
 		"get": getCommand,
-		"set":
+		"set": setCommand,
 	}
 
 }

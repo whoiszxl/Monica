@@ -15,7 +15,7 @@ func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	//获取网络相关配置
 	netBind, err := cfg.GetValue("net", "bind")
 	errVerify(err)
-	netPort, err := cfg.Int("net", "port")
+	netPort, err := cfg.GetValue("net", "port")
 	errVerify(err)
 
 	dbDatabases, err := cfg.Int("db", "databases")
@@ -56,7 +56,7 @@ func errVerify(err error) {
 //网络配置结构体
 type NetConfig struct {
 	NetBind string
-	NetPort int
+	NetPort string
 	NetHost string
 }
 

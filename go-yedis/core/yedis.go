@@ -14,7 +14,7 @@ import (
 func (s *YedisServer) CreateClient() (c *YedisClients) {
 	c = new(YedisClients)
 	c.Name = string(rand.Intn(10))
-	//c.Db = s.yedisDb[0]
+	c.Db = s.ServerDb[0]
 	c.Argv = make([]*YedisObject, 5)
 	c.Argc = 5
 	c.QueryBuf = ""
@@ -24,7 +24,6 @@ func (s *YedisServer) CreateClient() (c *YedisClients) {
 
 //通过connection连接获取客户端请求的命令信息并封装到Client对象中
 func (c *YedisClients) ReadCommandFromClient(conn net.Conn) error {
-	defer conn.Close()
 	buff := make([]byte, 512)
 	n, err := conn.Read(buff)
 	if err != nil {
@@ -77,8 +76,7 @@ func call(c *YedisClients, s *YedisServer) {
 
 	//判断是否需要aof，开启了则将命令写入server的aofBuff缓冲区
 	if s.AofEnabled == ENABLE {
-		newStr := append(s.AofBuf, c.QueryBuf)
-
+		s.AofBuf = append(s.AofBuf, c.QueryBuf)
 	}
 }
 

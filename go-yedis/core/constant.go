@@ -18,4 +18,8 @@ const (
 	OBJ_SET    = 2
 	OBJ_ZSET   = 3
 	OBJ_HASH   = 4
+
+
+	ENABLE = 1
+	DISABLE = 0
 )

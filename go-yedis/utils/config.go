@@ -15,7 +15,7 @@ func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	//获取网络相关配置
 	netBind, err := cfg.GetValue("net", "bind")
 	errVerify(err)
-	netPort, err := cfg.GetValue("net", "port")
+	netPort, err := cfg.Int("net", "port")
 	errVerify(err)
 
 	dbDatabases, err := cfg.Int("db", "databases")
@@ -28,6 +28,8 @@ func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	errVerify(err)
 	dbRequirepass, err := cfg.GetValue("db", "requirepass")
 	errVerify(err)
+	dbHz, err := cfg.Int("db", "hz")
+	errVerify(err)
 
 	aofAppendonly, err := cfg.GetValue("aof", "appendonly")
 	errVerify(err)
@@ -36,8 +38,8 @@ func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	aofAppendfsync, err := cfg.GetValue("aof", "appendfsync")
 	errVerify(err)
 
-	netConfig := NetConfig{netBind, netPort, netBind + netPort}
-	dbConfig := DbConfig{dbDatabases, dbDbfilename, dbSavetime, dbSavenumber, dbRequirepass}
+	netConfig := NetConfig{netBind, netPort, netBind + ":" + string(netPort)}
+	dbConfig := DbConfig{dbDbfilename, dbDatabases, dbSavetime, dbSavenumber, dbRequirepass, dbHz}
 	aofConfig := AofConfig{aofAppendonly, aofAppendfilename, aofAppendfsync}
 
 	return netConfig, dbConfig, aofConfig
@@ -54,20 +56,21 @@ func errVerify(err error) {
 //网络配置结构体
 type NetConfig struct {
 	NetBind string
-	NetPort string
+	NetPort int
 	NetHost string
 }
 
 //数据库配置结构体
 type DbConfig struct {
-	DbDatabases   int
 	DbDbfilename  string
+	DbDatabases   int
 	DbSavetime    int
 	DbSavenumber  int
 	DbRequirepass string
+	Hz int
 }
 
-//网络配置结构体
+//AOF配置结构体
 type AofConfig struct {
 	AofAppendonly     string
 	AofAppendfilename string

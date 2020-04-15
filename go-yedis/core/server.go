@@ -25,7 +25,7 @@ type YedisServer struct {
 
 	/* 网络配置 */
 	BindAddr string //绑定运行的IP地址，简化为1个，Redis有多个
-	Port int32 // Yedis服务器监听的端口号，可以通过yedis.conf配置，默认端口6380
+	Port int // Yedis服务器监听的端口号，可以通过yedis.conf配置，默认端口6380
 	NextClientId int64 //下一个客户端的唯一ID
 	Clients map[string]*YedisClients //当前连接的可用客户端
 	ClientsToClose map[string]*YedisClients //当前关闭的客户端
@@ -54,7 +54,11 @@ type YedisServer struct {
 
 
 	/* 系统硬件信息 */
-	SystemMemorySize int64  //系统内存大小
+	SystemAllMemorySize uint64  //系统内存大小
+	SystemAvailableSize uint64 //系统可用内存
+	SystemUsedSize uint64 //系统已用内存
+	SystemUsedPercent float64 //内存使用百分比
+	SystemCpuPercent float64 //CPU使用百分比
 
 }
 

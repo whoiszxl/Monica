@@ -2,7 +2,6 @@ package core
 
 import (
 	"Monica/go-yedis/encrypt"
-	"Monica/go-yedis/persistence"
 	"bytes"
 	"errors"
 	"fmt"
@@ -65,7 +64,7 @@ func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 		c.Cmd = cmd
 		call(c, s)
 	}else {
-		addReplyError(c, fmt.Sprintf("(error) ERR unknown command '%s'", commandName))
+		AddReplyError(c, fmt.Sprintf("(error) ERR unknown command '%s'", commandName))
 	}
 
 }
@@ -76,12 +75,10 @@ func call(c *YedisClients, s *YedisServer) {
 	c.Cmd.CommandProc(c, s)
 	dirty = s.Dirty - dirty
 
-	//判断是否需要aof
-	if s.AofEnabled == 1 {
-		if dirty > 0 {
-			//持久化
-			persistence.AppendToFile(s.AofFileName, c.QueryBuf)
-		}
+	//判断是否需要aof，开启了则将命令写入server的aofBuff缓冲区
+	if s.AofEnabled == ENABLE {
+		newStr := append(s.AofBuf, c.QueryBuf)
+
 	}
 }
 

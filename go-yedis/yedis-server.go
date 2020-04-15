@@ -1,10 +1,13 @@
 package main
 
 import (
+	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
 	"flag"
 	"fmt"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/mem"
 	"log"
 	"net"
 	"os"
@@ -15,6 +18,9 @@ import (
 const (
 	//默认配置文件路径
 	defaultConfigPath = "yedis.conf"
+
+	//默认数据库的键值对初始容量
+	defaultDbDictCapacity = 100
 )
 
 //创建服务端实例
@@ -40,11 +46,14 @@ func main() {
 	fmt.Println(dbConfig)
 	fmt.Println(aofConfig)
 
-	//读取命令行输入的ip和端口
+	//读取命令行输入的ip和端口,并将命令行获取的值回写
 	var netBind = flag.String("ip", netConfig.NetBind, "redis服务端IP")
-	var netPort = flag.String("port", netConfig.NetPort, "redis服务端PORT")
+	var netPort = flag.Int("port", netConfig.NetPort, "redis服务端PORT")
 	flag.Parse()
-	host := *netBind + ":" + *netPort
+	netConfig.NetBind = *netBind
+	netConfig.NetPort = *netPort
+
+	host := *netBind + ":" + string(*netPort)
 	log.Println("Redis实例化地址：" + host)
 
 	//监听退出事件做相应处理
@@ -98,32 +107,69 @@ func handle(conn net.Conn) {
 
 //初始化服务端实例, 将yedis.conf配置写入server实例
 func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig utils.AofConfig, configPath string) {
+	//1. 写入基础配置
 	yedis.Pid = os.Getpid() //获取进程ID
+	yedis.ConfigFile = configPath //配置文件绝对路径
 	yedis.DbNum = dbConfig.DbDatabases //配置db数量
-	yedis.RdbFileName = dbConfig.DbDbfilename
-	yedis.AofFileName = aofConfig.AofAppendfilename
-	if aofConfig.AofAppendonly == "no" {
+	yedis.Hz = dbConfig.Hz //配置任务执行频率
+	initDb() //初始化server中的16个数据库
+
+	//2. 网络配置
+	yedis.BindAddr = netConfig.NetBind //配置绑定IP地址
+	yedis.Port = netConfig.NetPort //配置端口号
+
+	//3. RDB persistence持久化
+	yedis.Dirty = 1 //存储上次数据变动前的长度
+	yedis.RdbFileName = dbConfig.DbDbfilename //rdb文件名
+	yedis.RdbCompression = core.DISABLE //TODO 是否对rdb使用压缩
+
+	//4. AOF persistence持久化
+	if aofConfig.AofAppendonly == "no" { //配置是否开启aof：number
 		yedis.AofEnabled = 0
 	}else {
 		yedis.AofEnabled = 1
 	}
-	yedis.AofState = aofConfig.AofAppendonly
-	yedis.AofSync = aofConfig.AofAppendfsync
+	yedis.AofState = aofConfig.AofAppendonly //配置是否开启aof：字符串
+	yedis.AofFileName = aofConfig.AofAppendfilename //配置aof文件名
+	yedis.AofSync = aofConfig.AofAppendfsync //配置同步文件的策略
 
-	initDb() //初始化db
-	yedis.StatStartTime = time.Now().UnixNano() / 1000000 //记录开始运行时间
-	yedis.ConfigFile = configPath
+	//5. 仅用于统计使用的字段，仅取部分
+	yedis.StatStartTime = time.Now().UnixNano() / 1000000 //记录服务启动时间
+	yedis.StatNumCommands = int16(len(yedis.Commands)) //支持的命令数量
+	yedis.StatNumConnections = int16(0) //当前连接数量
+	yedis.StatExpiredKeys = int64(0) //当前失效key的数量
 
+	//6. 系统硬件信息
+	memInfo, err := mem.VirtualMemory() //获取机器内存信息
+	utils.ErrorVerify("获取机器内存信息失败", err)
+	yedis.SystemAllMemorySize = memInfo.Total     //机器总内存大小 单位：b
+	yedis.SystemAvailableSize = memInfo.Available //机器可用内存大小 单位：b
+	yedis.SystemUsedSize = memInfo.Used           //机器已用内存大小 单位：b
+	yedis.SystemUsedPercent = memInfo.UsedPercent //机器已用内存百分比
 
+	percent, err := cpu.Percent(time.Second, false)
+	utils.ErrorVerify("获取机器CPU信息失败", err)
+	yedis.SystemCpuPercent = percent[0] //CPU使用百分比情况
+
+	//初始化服务支持命令
+	getCommand := &core.YedisCommand{Name: "get", CommandProc: command.GetCommand}
+	yedis.Commands = map[string]*core.YedisCommand {
+		"get": getCommand,
+		"set":
+	}
 
 }
 
-//初始化DB
+//初始化数据库
 func initDb() {
+	//创建一个储存数据库对象的切片
 	yedis.ServerDb = make([]*core.YedisDb, yedis.DbNum)
 	for i:=0; i<yedis.DbNum; i++ {
+		//创建YedisDb数据库对象并对其中数据库ID和键值对字段赋值
+		//键值对容量暂写死为200
 		yedis.ServerDb[i] = new(core.YedisDb)
-		yedis.ServerDb[i].Dict = make(map[string]*core.YedisObject, 100)
+		yedis.ServerDb[i].ID = int8(i)
+		yedis.ServerDb[i].Data = make(map[string]*core.YedisObject, defaultDbDictCapacity)
 	}
 }
 

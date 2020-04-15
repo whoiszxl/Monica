@@ -22,4 +22,7 @@ const (
 
 	ENABLE = 1
 	DISABLE = 0
+
+	//TODO info命令使用的换行分隔符，因为\r\n在redis协议加解密的时候会截取掉，所以暂用特殊方案解决
+	INFO_LINE_SEPARATOR = "$"
 )

@@ -46,7 +46,13 @@ func main() {
 			if n == 0 {
 				fmt.Println("nil")
 			}else if err == nil {
-				fmt.Println(string(resp.Value))
+				result := string(resp.Value)
+
+				//TODO 如果命令是info,因为\r\n在redis协议加解密的时候会截取掉，所以暂用$分割来解决,多一道判断影响效率，后续再优化
+				if cmd == "info" {
+					result = strings.Replace(result, "$", "\r\n", -1)
+				}
+				fmt.Println(result)
 			}else {
 				fmt.Println("服务器发生错误", err)
 			}

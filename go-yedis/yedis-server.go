@@ -163,9 +163,11 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	//初始化服务支持命令
 	getCommand := &core.YedisCommand{Name: "get", CommandProc: command.GetCommand}
 	setCommand := &core.YedisCommand{Name: "set", CommandProc: command.SetCommand}
+	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
 	yedis.Commands = map[string]*core.YedisCommand {
 		"get": getCommand,
 		"set": setCommand,
+		"info": infoCommand,
 	}
 
 }

@@ -169,6 +169,12 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: sds.GetrangeCommand}
 	mgetCommand := &core.YedisCommand{Name: "mget", CommandProc: sds.MgetCommand}
 
+	incrCommand := &core.YedisCommand{Name: "incr", CommandProc: sds.IncrCommand}
+	incrbyCommand := &core.YedisCommand{Name: "incrby", CommandProc: sds.IncrbyCommand}
+	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand}
+	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand}
+
+
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
 
 	yedis.Commands = map[string]*core.YedisCommand{
@@ -179,6 +185,11 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"getrange": getrangeCommand,
 		"mget": mgetCommand,
 		"info":   infoCommand,
+
+		"incr": incrCommand,
+		"incrby": incrbyCommand,
+		"decr": decrCommand,
+		"decrby": decrbyCommand,
 	}
 
 }

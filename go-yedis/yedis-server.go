@@ -2,6 +2,7 @@ package main
 
 import (
 	"Monica/go-yedis/command"
+	"Monica/go-yedis/command/sds"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
 	"flag"
@@ -163,10 +164,15 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	//初始化服务支持命令
 	getCommand := &core.YedisCommand{Name: "get", CommandProc: command.GetCommand}
 	setCommand := &core.YedisCommand{Name: "set", CommandProc: command.SetCommand}
+	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: sds.StrlenCommand}
+
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
+
 	yedis.Commands = map[string]*core.YedisCommand {
 		"get": getCommand,
 		"set": setCommand,
+		"strlen": strlenCommand,
+
 		"info": infoCommand,
 	}
 

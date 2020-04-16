@@ -15,7 +15,4 @@ type Dict map[string]*YedisObject
 //Redis源码：https://github.com/antirez/redis/blob/3.0/src/db.c#L93
 func DbAdd(db *YedisDb, key string, value *YedisObject) {
 
-
-	DictAdd(db.Data, key, value)
-
 }

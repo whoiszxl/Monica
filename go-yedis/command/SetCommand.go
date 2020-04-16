@@ -21,7 +21,7 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 	if stringKey, ok1 := robjKey.Ptr.(string); ok1 {
 		if stringValue, ok2 := robjValue.Ptr.(string); ok2 {
 			//创建一个sdshdr保存到字典中
-			robjSds := ds.Sdshdr{Len:uint(len(stringValue)), Free:0, Buf:stringValue}
+			robjSds := ds.Sdshdr{Len:uint64(len(stringValue)), Free:0, Buf:stringValue}
 			c.Db.Data[stringKey] = core.CreateObject(core.OBJ_STRING, robjSds)
 		}
 	}

@@ -11,7 +11,7 @@ type Sdshdr struct {
 	//buf数组中已经使用字节的数量，相当于当前字符串的长度
 	//len的存在是因为Redis的C底层字符数组不支持O(1)的复杂度查询，为O(N),为了优化STRLEN()方法的效率而引入Len属性
 	//在Go中实际也是多余的，Go中len(Buf)调用本身就是O(1)的复杂度，为了模仿一下Redis而加这个参数了
-	Len uint
+	Len uint64
 
 	//buf数组中未使用字节的数量
 	Free uint

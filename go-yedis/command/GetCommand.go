@@ -8,7 +8,7 @@ import (
 //get命令
 func GetCommand(c *core.YedisClients, s *core.YedisServer) {
 
-	robj := lookupKey(c.Db.Data, c.Argv[1])
+	robj := LookupKey(c.Db.Data, c.Argv[1])
 	if robj != nil {
 		if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
 			core.AddReplyStatus(c, sdshdr.Buf)

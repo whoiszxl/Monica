@@ -166,6 +166,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	setCommand := &core.YedisCommand{Name: "set", CommandProc: command.SetCommand}
 	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: sds.StrlenCommand}
 	appendCommand := &core.YedisCommand{Name: "append", CommandProc: sds.AppendCommand}
+	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: sds.GetrangeCommand}
 
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
 
@@ -174,6 +175,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"set":    setCommand,
 		"strlen": strlenCommand,
 		"append": appendCommand,
+		"getrange": getrangeCommand,
 		"info":   infoCommand,
 	}
 

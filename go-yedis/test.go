@@ -2,9 +2,13 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 func main() {
-	fmt.Println(time.Now().UnixNano() / 1000000)
+	s := "foobar阿斯蒂芬"
+	fmt.Println(s)
+	fmt.Println(&s)
+	s = "qweqweqweqweqwe"
+	fmt.Println(s)
+	fmt.Println(&s)
 }

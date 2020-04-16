@@ -1,13 +1,20 @@
 package command
 
-import "Monica/go-yedis/core"
+import (
+	"Monica/go-yedis/core"
+	"Monica/go-yedis/ds"
+)
 
 //get命令
 func GetCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	robj := lookupKey(c.Db.Data, c.Argv[1])
 	if robj != nil {
-		core.AddReplyStatus(c, robj.Ptr.(string))
+		if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
+			core.AddReplyStatus(c, sdshdr.Buf)
+		}else {
+			core.AddReplyStatus(c, "nil")
+		}
 	}else {
 		core.AddReplyStatus(c, "nil")
 	}

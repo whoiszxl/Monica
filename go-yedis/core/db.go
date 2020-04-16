@@ -9,3 +9,13 @@ type YedisDb struct {
 
 //使用Go原生数据结构map作为redis中dict结构体
 type Dict map[string]*YedisObject
+
+
+//将key添加到数据库中
+//Redis源码：https://github.com/antirez/redis/blob/3.0/src/db.c#L93
+func DbAdd(db *YedisDb, key string, value *YedisObject) {
+
+
+	DictAdd(db.Data, key, value)
+
+}

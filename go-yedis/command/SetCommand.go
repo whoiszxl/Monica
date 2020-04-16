@@ -1,8 +1,12 @@
 package command
 
-import "Monica/go-yedis/core"
+import (
+	"Monica/go-yedis/core"
+	"Monica/go-yedis/ds"
+)
 
-//set命令
+// set命令
+// Redis源码中key用的是robj,这里精简一下直接采用go原生string
 func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 	//校验有效性
 	if !checkParam(c) {
@@ -16,7 +20,9 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 	//判断是否是字符串，是则设置到Db的Data中
 	if stringKey, ok1 := robjKey.Ptr.(string); ok1 {
 		if stringValue, ok2 := robjValue.Ptr.(string); ok2 {
-			c.Db.Data[stringKey] = core.CreateObject(core.OBJ_STRING, stringValue)
+			//创建一个sdshdr保存到字典中
+			robjSds := ds.Sdshdr{Len:uint(len(stringValue)), Free:0, Buf:stringValue}
+			c.Db.Data[stringKey] = core.CreateObject(core.OBJ_STRING, robjSds)
 		}
 	}
 

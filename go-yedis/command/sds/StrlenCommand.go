@@ -14,6 +14,8 @@ func StrlenCommand(c *core.YedisClients, s *core.YedisServer) {
 	if robj != nil {
 		if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
 			core.AddReplyStatus(c, strconv.FormatUint(sdshdr.Len, 10))
+		}else if intValue, err := strconv.Atoi(robj.Ptr.(string)); err == nil{
+			core.AddReplyStatus(c, strconv.Itoa(intValue))
 		}else {
 			core.AddReplyStatus(c, "nil")
 		}

@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	"reflect"
 )
 
 func main() {
-	s := "foobar阿斯蒂芬"
-	fmt.Println(s)
-	fmt.Println(&s)
-	s = "qweqweqweqweqwe"
-	fmt.Println(s)
-	fmt.Println(&s)
+	s := "zxl"
+	i := 1
+	c := 1000000000000000
+	fmt.Println(reflect.TypeOf(s))
+	fmt.Println(reflect.TypeOf(i))
+	fmt.Println(reflect.TypeOf(c))
+
 }

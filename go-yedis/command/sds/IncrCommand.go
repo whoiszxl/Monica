@@ -3,7 +3,6 @@ package sds
 import (
 	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
-	"Monica/go-yedis/ds"
 	"strconv"
 )
 
@@ -11,21 +10,19 @@ import (
 func IncrCommand(c *core.YedisClients, s *core.YedisServer) {
 	//搜索key是否存在数据库中
 	robj := command.LookupKey(c.Db.Data, c.Argv[1])
-	if robj != nil {
-		if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
-			//获取到字符串sdshdr对象,判断它是否能转int
-			//TODO 直接覆盖而不是修改内存值，暂有优化空间
-			if number, err := strconv.Atoi(sdshdr.Buf); err == nil {
-				number = number + 1
-				sdshdr.Buf = strconv.Itoa(number)
-				robj.Ptr = sdshdr
-			}
-
-			core.AddReplyStatus(c, sdshdr.Buf)
-		}else {
-			core.AddReplyStatus(c, "nil")
-		}
-	}else {
+	//判断类型有效性
+	if robj == nil {
 		core.AddReplyStatus(c, "nil")
+	}
+	if robj.Encoding != core.OBJ_ENCODING_INT {
+		core.AddReplyStatus(c, "(error) ERR value is not an integer or out of range")
+		return
+	}
+
+	if intFloat, ok := robj.Ptr.(float64); ok {
+		//在ptr中可以直接拿到int類型
+		intFloat = intFloat + 1
+		robj.Ptr = intFloat
+		core.AddReplyStatus(c, strconv.FormatFloat(intFloat, 'f', -1, 64))
 	}
 }

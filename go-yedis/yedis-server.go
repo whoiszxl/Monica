@@ -162,8 +162,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	yedis.SystemCpuPercent = percent[0] //CPU使用百分比情况
 
 	//初始化服务支持命令
-	getCommand := &core.YedisCommand{Name: "get", CommandProc: command.GetCommand}
-	setCommand := &core.YedisCommand{Name: "set", CommandProc: command.SetCommand}
+	getCommand := &core.YedisCommand{Name: "get", CommandProc: sds.GetCommand}
+	setCommand := &core.YedisCommand{Name: "set", CommandProc: sds.SetCommand}
 	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: sds.StrlenCommand}
 	appendCommand := &core.YedisCommand{Name: "append", CommandProc: sds.AppendCommand}
 	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: sds.GetrangeCommand}
@@ -174,21 +174,20 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand}
 	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand}
 
-
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
 
 	yedis.Commands = map[string]*core.YedisCommand{
-		"get":    getCommand,
-		"set":    setCommand,
-		"strlen": strlenCommand,
-		"append": appendCommand,
+		"get":      getCommand,
+		"set":      setCommand,
+		"strlen":   strlenCommand,
+		"append":   appendCommand,
 		"getrange": getrangeCommand,
-		"mget": mgetCommand,
-		"info":   infoCommand,
+		"mget":     mgetCommand,
+		"info":     infoCommand,
 
-		"incr": incrCommand,
+		"incr":   incrCommand,
 		"incrby": incrbyCommand,
-		"decr": decrCommand,
+		"decr":   decrCommand,
 		"decrby": decrbyCommand,
 	}
 

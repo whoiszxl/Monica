@@ -5,7 +5,7 @@ package core
 type YedisClients struct {
 	Name string //客户端名称
 	Argc int // 当前执行命令的参数的个数
-	Argv []*YedisObject //
+	Argv []*YedisObject //当前执行命令的参数
 	Db *YedisDb //指向当前选择数据库的指针
 	QueryBuf string //积累客户端查询的缓冲区, 暂用string，后更新用sds
 	Reply string //需要发送回客户端的回复信息

@@ -174,6 +174,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand}
 	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand}
 
+	pexpireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.PexpireatCommand}
+
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
 
 	yedis.Commands = map[string]*core.YedisCommand{
@@ -189,6 +191,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"incrby": incrbyCommand,
 		"decr":   decrCommand,
 		"decrby": decrbyCommand,
+
+		"pexpireat": pexpireatCommand,
 	}
 
 }
@@ -203,5 +207,8 @@ func initDb() {
 		yedis.ServerDb[i] = new(core.YedisDb)
 		yedis.ServerDb[i].ID = int8(i)
 		yedis.ServerDb[i].Data = make(map[string]*core.YedisObject, defaultDbDictCapacity)
+		yedis.ServerDb[i].Expires = make(core.ExpireDict, defaultDbDictCapacity)
+		yedis.ServerDb[i].AvgTTL = 0
+
 	}
 }

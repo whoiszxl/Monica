@@ -15,7 +15,7 @@ func PexpireatCommand(c *core.YedisClients, s *core.YedisServer) {
 	if robj != nil {
 		//不为空，则在过期db空间里关联键和过期时间
 		if timestamp, err := strconv.Atoi(c.Argv[2].Ptr.(string)); err == nil {
-			key := c.Argv[1].Ptr.(string)
+			key := c.Argv[1].Ptr.(*core.YedisObject)
 			c.Db.Expires[key] = timestamp
 			core.AddReplyStatus(c, "1")
 		}

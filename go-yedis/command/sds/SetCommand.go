@@ -2,7 +2,6 @@ package sds
 
 import (
 	"Monica/go-yedis/core"
-	"Monica/go-yedis/ds"
 	"strconv"
 )
 
@@ -24,18 +23,19 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 		//简化一下，int类型也直接保存到sds中
 		if stringValue, ok3 := robjValue.Ptr.(string); ok3 {
 
+			//创建一个sdshdr保存到字典中
+			robjKey := core.CreateSdsObject(core.OBJ_ENCODING_RAW, stringKey)
 			//判断是否能转int，能转则设置encoding的方式
 			if _, err := strconv.Atoi(stringValue); err == nil {
-				//创建一个sdshdr保存到字典中
-				robjSds := ds.Sdshdr{Len: uint64(len(stringValue)), Free: 0, Buf: stringValue}
-				c.Db.Data[stringKey] = core.CreateObject(core.OBJ_STRING, core.OBJ_ENCODING_INT, robjSds)
+				robjValue := core.CreateSdsObject(core.OBJ_ENCODING_INT, stringValue)
+				c.Db.Data[robjKey] = robjValue
 			}else {
 				//创建一个sdshdr保存到字典中
-				robjSds := ds.Sdshdr{Len: uint64(len(stringValue)), Free: 0, Buf: stringValue}
+				robjValue := core.CreateSdsObject(core.OBJ_ENCODING_RAW, stringValue)
 				//注意事项：字符串的编码方式在Redis中有三种，首先INT方式已经在上个if判断中添加了，INT编码方式不需要sds对象包装，可以提升效率，它底层实际是个long
 				//其次是RAW和EMBSTR, 都是字符串。小于39字节用EMBSTR,大于用RAW，Redis3.2版本则以44字节区分
 				//此处省略判断，直接用RAW
-				c.Db.Data[stringKey] = core.CreateObject(core.OBJ_STRING, core.OBJ_ENCODING_RAW, robjSds)
+				c.Db.Data[robjKey] = robjValue
 			}
 		}
 	}

@@ -1,5 +1,7 @@
 package core
 
+import "Monica/go-yedis/ds"
+
 // ZedisObject 是对特定类型的数据的包装
 type YedisObject struct {
 	ObjectType int
@@ -17,4 +19,10 @@ func CreateObject(objectType int, encodingType int, ptr interface{}) (o *YedisOb
 	o.RefCount = 1
 	//TODO LRU开发
 	return
+}
+
+
+func CreateSdsObject(encodingType int, str string) *YedisObject {
+	sdshdr := ds.Sdsnew(str)
+	return CreateObject(OBJ_STRING, encodingType, sdshdr)
 }

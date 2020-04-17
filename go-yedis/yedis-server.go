@@ -206,7 +206,7 @@ func initDb() {
 		//键值对容量暂写死为200
 		yedis.ServerDb[i] = new(core.YedisDb)
 		yedis.ServerDb[i].ID = int8(i)
-		yedis.ServerDb[i].Data = make(map[string]*core.YedisObject, defaultDbDictCapacity)
+		yedis.ServerDb[i].Data = make(core.Dict, defaultDbDictCapacity)
 		yedis.ServerDb[i].Expires = make(core.ExpireDict, defaultDbDictCapacity)
 		yedis.ServerDb[i].AvgTTL = 0
 

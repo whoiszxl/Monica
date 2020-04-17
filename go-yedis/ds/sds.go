@@ -20,3 +20,10 @@ type Sdshdr struct {
 	//精简一下了，看源码还需要dbAdd->dictAdd->dictSetVal,过于复杂了
 	Buf string
 }
+
+//创建一个sds对象
+func Sdsnew(str string) Sdshdr {
+	strLen := len(str)
+	sdshdr := Sdshdr{Len: uint64(strLen), Free: 0, Buf: str}
+	return sdshdr
+}

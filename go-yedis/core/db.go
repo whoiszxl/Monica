@@ -8,10 +8,10 @@ type YedisDb struct {
 }
 
 //使用Go原生数据结构map作为redis中dict结构体
-type Dict map[string]*YedisObject
+type Dict map[*YedisObject]*YedisObject
 
 //保存过期键值对的字典  map[键名]过期时间的时间戳
-type ExpireDict map[string]int
+type ExpireDict map[*YedisObject]int
 
 
 //将key添加到数据库中

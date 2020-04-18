@@ -174,7 +174,11 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand}
 	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand}
 
+	pexpireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: sds.PexpireCommand}
 	pexpireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.PexpireatCommand}
+	expireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: sds.ExpireCommand}
+	expireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.ExpireatCommand}
+
 	pttlCommand := &core.YedisCommand{Name: "pttl", CommandProc: sds.PttlCommand}
 	ttlCommand := &core.YedisCommand{Name: "ttl", CommandProc: sds.TtlCommand}
 
@@ -194,7 +198,11 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"decr":   decrCommand,
 		"decrby": decrbyCommand,
 
+		"pexpire": pexpireCommand,
 		"pexpireat": pexpireatCommand,
+		"expire": expireCommand,
+		"expireat": expireatCommand,
+
 		"pttl": pttlCommand,
 		"ttl": ttlCommand,
 	}

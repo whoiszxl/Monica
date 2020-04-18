@@ -9,6 +9,11 @@ import (
 func TtlCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	validTimestamp := GetPttlTime(c, s)
-	core.AddReplyStatus(c, strconv.Itoa(validTimestamp / 1000))
+	if validTimestamp > 0 {
+		core.AddReplyStatus(c, strconv.Itoa(validTimestamp / 1000))
+	}else {
+		core.AddReplyStatus(c, strconv.Itoa(validTimestamp))
+	}
+
 }
 

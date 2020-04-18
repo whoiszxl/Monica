@@ -10,13 +10,14 @@ import (
 //设置成功返回1，不成功0
 func ExpireatCommand(c *core.YedisClients, s *core.YedisServer) {
 
-	//判断key是否在键空间db中
-	robj := command.LookupKey(c.Db.Data, c.Argv[1])
-	if robj != nil {
+	//db键空间中有key的话就拿到key对象
+	robjKey := command.GetKeyObj(c.Db.Data, c.Argv[1])
+
+	if robjKey != nil {
 		//不为空，则在过期db空间里关联键和过期时间
 		if timestamp, err := strconv.Atoi(c.Argv[2].Ptr.(string)); err == nil {
-			key := c.Argv[1].Ptr.(*core.YedisObject)
-			c.Db.Expires[key] = timestamp / 1000
+			//获取的是秒级时间戳，需要乘1000再存入
+			c.Db.Expires[robjKey] = timestamp * 1000
 			core.AddReplyStatus(c, "1")
 		}
 	}else {

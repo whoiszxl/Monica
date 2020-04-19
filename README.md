@@ -1,4 +1,4 @@
-# 造轮子修炼手册
+# 造轮子手册
 [![MyWebSite](https://img.shields.io/badge/我的站点-whoiszxl-blue.svg)](https://whoiszxl.github.io)
 [![docs](https://img.shields.io/badge/docs-reference-green.svg)](https://whoiszxl.github.io)
 [![teach](https://img.shields.io/badge/教程-BohemianRhapsody-orange.svg)](https://github.com/whoiszxl/Monica)
@@ -6,7 +6,7 @@
 
 
 ### 手册进度
-▓░░░░░░░░░░░░░░░░░░░ 1% 构建目录中
+▓▓░░░░░░░░░░░░░░░░░░░ 3% Go-Yedis开发中
 
 ### 手册介绍
 记录当前学习造轮子的笔记手册，用简单的代码实现一些经典的软件框架等，如Redis,MySQL，Rpc，MyBatis，Spring等。
@@ -15,7 +15,11 @@
 文档地址：http://monica.whoiszxl.com/
 
 ### 手册目录
-1. GO-RPC
+1. go-yedis
+2. go-wysql
+3. go-xrpc
+4. java-zyBatis
+5. java-summer
 
 
 ##### 公众号

@@ -63,7 +63,13 @@ func main() {
 	//初始化服务端实例
 	initServer(netConfig, dbConfig, aofConfig, configPath)
 
+	// 事件循环有点复杂了，先直接go xx试下
+
+	core.AeCreateTimeEvent(yedis, yedis.El, 1, core.ServerCron, nil, nil)
+
+
 	//初始化网络监听并延时关闭
+	//redis3.0代码：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/redis.c#L1981
 	netListener, err := net.Listen("tcp", host)
 	if err != nil {
 		log.Println("net listen err:", err)
@@ -116,6 +122,7 @@ func response2Client(conn net.Conn, c *core.YedisClients) {
 }
 
 //初始化服务端实例, 将yedis.conf配置写入server实例
+//redis3.0代码地址：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/redis.c#L3952
 func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig utils.AofConfig, configPath string) {
 	//1. 写入基础配置
 	yedis.Pid = os.Getpid()            //获取进程ID
@@ -132,6 +139,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	yedis.Dirty = 1                           //存储上次数据变动前的长度
 	yedis.RdbFileName = dbConfig.DbDbfilename //rdb文件名
 	yedis.RdbCompression = core.DISABLE       //TODO 是否对rdb使用压缩
+	yedis.SaveTime = dbConfig.DbSavetime      //指定在多长时间内，有多少次更新操作，就将数据同步到数据文件，默认：300秒内10次更新操作就同步数据到文件
+	yedis.SaveNumber = dbConfig.DbSavenumber  //
 
 	//4. AOF persistence持久化
 	if aofConfig.AofAppendonly == "no" { //配置是否开启aof：number

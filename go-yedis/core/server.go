@@ -12,6 +12,9 @@ type YedisServer struct {
 	ConfigFile string //配置文件绝对路径
 	DbNum int //数据库的数量，可以通过yedis.conf配置，默认16个
 	ServerDb []*YedisDb //储存数据库的数组
+	Unixtime int //每一个cron定时任务都会更新的时间
+	Mstime int //和unixtime一样，只是这个是毫秒
+	El *AeEventLoop //所有的事件，链表结构，一般只有serverCron的事件
 
 	//serverCron函数执行频率,最小值1，最大值500，Redis-3.0.0默认是10，代表每秒执行十次serverCron函数
 	//serverCron函数执行类似清除过期键，处理超时连接等任务
@@ -31,20 +34,24 @@ type YedisServer struct {
 	ClientsToClose map[string]*YedisClients //当前关闭的客户端
 
 	/* RDB persistence持久化 */
-	Dirty int64 //存储上次数据变动前的长度
+	RdbChildPid int //执行bgsave子进程的pid，默认未执行状态为-1
+	Dirty int //存储上次数据变动前的长度
 	RdbFileName string //rdb文件名
 	RdbCompression int //是否对rdb使用压缩
-	LastSaveTime int64 //最后一次保存的时间
+	LastSaveTime int //最后一次保存RDB的时间
+	SaveTime int //rdb bgsave存储策略 时间  多少秒内有多少次修改则执行bgsave，原版是用数组保存，可以支持多个策略，此处先简写
+	SaveNumber int //rdb bgsave存储策略 次数
 
 
 	/* AOF persistence持久化 */
+	AofChildPid int //执行aof重写的子进程id，默认未执行状态为-1
 	AofEnabled int //是否开启Aof
 	AofState string //aof状态，[0: OFF] [1: ON] [2: WAIT_REWRITE]
 	AofFileName string //aof文件名
 	AofCurrentSize int //aof文件当前大小
 	AofBuf []string //aof缓冲区，在进入事件循环前写入
 	AofSync string //更新模式：everysec: 每秒同步一次（折中，默认值，多用此配） no：表示等操作系统进行数据缓存同步到磁盘(效率高，不安全)  always：表示每次更新操作后手动调用fsync()将数据写到磁盘（效率低，安全，一般不采用）
-
+	AofRewriteMinSize int //aof执行aof重新的最小大小
 
 	/* 仅用于统计使用的字段，仅取部分 */
 	StatStartTime int64 //服务启动时间

@@ -42,3 +42,8 @@ func ReadAof(fileName string) []string {
 	}
 	return pros
 }
+
+//
+func RewriteAppendOnlyFileBackground() {
+
+}

@@ -18,7 +18,7 @@ func LookupKey(data core.Dict, userKey *core.YedisObject) (ret *core.YedisObject
 }
 
 func GetKeyObj(data core.Dict, userKey *core.YedisObject) (ret *core.YedisObject) {
-	for key, _ := range data {
+	for key := range data {
 		if key.Ptr.(ds.Sdshdr).Buf == userKey.Ptr.(string) {
 			return key
 		}

@@ -30,6 +30,7 @@ type YedisServer struct {
 	BindAddr string //绑定运行的IP地址，简化为1个，Redis有多个
 	Port string // Yedis服务器监听的端口号，可以通过yedis.conf配置，默认端口6380
 	NextClientId int64 //下一个客户端的唯一ID
+	MaxClients int //最大的客户端连接数
 	Clients map[string]*YedisClients //当前连接的可用客户端
 	ClientsToClose map[string]*YedisClients //当前关闭的客户端
 

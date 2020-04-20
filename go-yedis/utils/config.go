@@ -17,6 +17,8 @@ func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	errVerify(err)
 	netPort, err := cfg.GetValue("net", "port")
 	errVerify(err)
+	netMaxclients, err := cfg.Int("net", "maxclients")
+	errVerify(err)
 
 	dbDatabases, err := cfg.Int("db", "databases")
 	errVerify(err)
@@ -38,7 +40,7 @@ func ReadConfig(configPath string) (NetConfig, DbConfig, AofConfig) {
 	aofAppendfsync, err := cfg.GetValue("aof", "appendfsync")
 	errVerify(err)
 
-	netConfig := NetConfig{netBind, netPort, netBind + ":" + string(netPort)}
+	netConfig := NetConfig{netBind, netPort, netBind + ":" + string(netPort), netMaxclients}
 	dbConfig := DbConfig{dbDbfilename, dbDatabases, dbSavetime, dbSavenumber, dbRequirepass, dbHz}
 	aofConfig := AofConfig{aofAppendonly, aofAppendfilename, aofAppendfsync}
 
@@ -58,6 +60,7 @@ type NetConfig struct {
 	NetBind string
 	NetPort string
 	NetHost string
+	NetMaxclients int
 }
 
 //数据库配置结构体

@@ -11,3 +11,9 @@ func CurrentTimeMillis() int{
 func CurrentTimeSecond() int{
 	return int(time.Now().UnixNano() / 1e9)
 }
+
+//获取当前时间的秒和毫秒
+func CurrentSecondAndMillis() (int, int) {
+	time := int(time.Now().UnixNano())
+	return time/1e9 , time/1e6
+}

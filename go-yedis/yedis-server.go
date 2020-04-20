@@ -65,8 +65,11 @@ func main() {
 
 	// 事件循环有点复杂了，先直接go xx试下
 
-	core.AeCreateTimeEvent(yedis, yedis.El, 1, core.ServerCron, nil, nil)
-
+	eventId := core.AeCreateTimeEvent(yedis, 1, core.ServerCron, nil, nil)
+	if eventId == core.AE_ERR {
+		log.Println("Can't create the serverCron time event.")
+		os.Exit(core.AE_ERR)
+	}
 
 	//初始化网络监听并延时关闭
 	//redis3.0代码：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/redis.c#L1981
@@ -75,6 +78,9 @@ func main() {
 		log.Println("net listen err:", err)
 	}
 	defer netListener.Close()
+
+	//开始运行事件处理器，生命周期为Redis服务器创建到销毁
+	core.AeMain(yedis)
 
 	//循环监听新连接，将新连接放入go协程中处理
 	for {
@@ -129,6 +135,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	yedis.ConfigFile = configPath      //配置文件绝对路径
 	yedis.DbNum = dbConfig.DbDatabases //配置db数量
 	yedis.Hz = dbConfig.Hz             //配置任务执行频率
+	yedis.MaxClients = netConfig.NetMaxclients //客户端连接的最大数
+	yedis.El = core.AeCreateEventLoop(yedis.MaxClients + 96) //创建时间循环并赋值，暂时写死这个值
 	initDb()                           //初始化server中的16个数据库
 
 	//2. 网络配置

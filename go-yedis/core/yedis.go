@@ -30,7 +30,7 @@ func (s *YedisServer) CreateClient() (c *YedisClients) {
 //2. 更新一些统计信息，比如说内存使用情况，内存最高占用，command的平均调用时间
 //3. 调用bgsave备份数据到rdb，或者进行aof重写
 //4. 清除超时客户端连接
-func ServerCron(server *YedisServer) {
+func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 
 	//数据库相关定时任务
 	databasesCron()
@@ -53,6 +53,7 @@ func ServerCron(server *YedisServer) {
 		persistence.RewriteAppendOnlyFileBackground()
 	}
 
+	return 1
 }
 
 //数据库相关处理的执行函数

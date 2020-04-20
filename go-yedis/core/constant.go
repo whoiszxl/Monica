@@ -25,4 +25,19 @@ const (
 
 	//TODO info命令使用的换行分隔符，因为\r\n在redis协议加解密的时候会截取掉，所以暂用特殊方案解决
 	INFO_LINE_SEPARATOR = "$"
+
+
+	/*************事件相关常量***************/
+	AE_OK = 0 // 成功
+	AE_ERR = -1 // 出错
+
+	AE_NONE = 0 //文件事件状态: 未设置
+	AE_READABLE = 1 //可读
+	AE_WRITABLE = 2 //可写
+
+	AE_FILE_EVENTS = 1 // 文件事件
+	AE_TIME_EVENTS = 2 // 时间事件
+	AE_ALL_EVENTS = 3 //所有事件
+	AE_DONT_WAIT = 4 // 不阻塞，也不进行等待
+	AE_NOMORE = -1 //决定时间事件是否要持续执行的 flag
 )

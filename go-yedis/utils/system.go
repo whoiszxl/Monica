@@ -12,8 +12,10 @@ func CurrentTimeSecond() int{
 	return int(time.Now().UnixNano() / 1e9)
 }
 
-//获取当前时间的秒和毫秒
+//获取当前时间的秒和毫秒,格式为： sec:1587452770 ms:770
 func CurrentSecondAndMillis() (int, int) {
-	time := int(time.Now().UnixNano())
-	return time/1e9 , time/1e6
+	time := int(time.Now().UnixNano() / 1e6)
+	sec := time / 1e3
+	ms := time % 1000
+	return sec , ms
 }

@@ -25,7 +25,7 @@ type AeEventLoop struct {
 type AeTimeEvent struct {
 
 	Id int //时间事件唯一ID
-	WhenSec int //时间事件触发的秒数
+	WhenSec int //时间事件触发的秒数  存储
 	WhenMs int //时间事件触发的毫秒数
 	TimeProc AeTimeProc //时间事件处理函数的指针
 	FinalizerProc *AeEventFinalizerProc //删除时间事件节点之前会调用此函数
@@ -67,7 +67,7 @@ func AeMain(server *YedisServer) {
 // 1|2:AE_ALL_EVENTS,处理所有事件
 // 4:AE_DONT_WAIT,处理完成所有非阻塞事件后立马返回
 func aeProcessEvents(server *YedisServer, eventLoop *AeEventLoop, flags int) int {
-	var processed int = 0
+	var processed = 0
 
 	if flags != AE_TIME_EVENTS {
 		return 0
@@ -88,7 +88,7 @@ func processTimeEvents(server *YedisServer, eventLoop *AeEventLoop) int {
 
 	processed := 0
 	te := new(AeTimeEvent)
-	maxId := 0
+	//maxId := 0
 	now := utils.CurrentTimeMillis()
 
 	//重置时间事件的运行时间防止因为时间穿插造成的事件处理混乱
@@ -108,15 +108,15 @@ func processTimeEvents(server *YedisServer, eventLoop *AeEventLoop) int {
 
 	//遍历链表执行那些whenSec时间到达了的事件
 	te = eventLoop.TimeEventHead
-	maxId = eventLoop.TimeEventNextId - 1
+	//maxId = eventLoop.TimeEventNextId - 1
 	for te != nil {
 		var id int
 
-		//跳过无效事件
-		if te.Id > maxId {
-			te = te.next
-			continue
-		}
+		//跳过无效事件，暂没搞明白什么意思
+		//if te.Id > maxId {
+		//	te = te.next
+		//	continue
+		//}
 
 		//获取当前时间
 		nowSec, nowMs := utils.CurrentSecondAndMillis()
@@ -134,7 +134,9 @@ func processTimeEvents(server *YedisServer, eventLoop *AeEventLoop) int {
 			//记录是否需要循环执行这个时间事件
 			if retval != AE_NOMORE {
 				//需要再次执行
-				aeAddMillisecondsToNow(retval)
+				whenSec, whenMs := aeAddMillisecondsToNow(retval)
+				te.WhenSec = whenSec
+				te.WhenMs = whenMs
 			}else {
 				//不需要执行了,删除时间事件
 				aeDeleteTimeEvent(eventLoop, id)
@@ -142,9 +144,10 @@ func processTimeEvents(server *YedisServer, eventLoop *AeEventLoop) int {
 
 			//将te继续放回表头，继续循环执行事件
 			te = eventLoop.TimeEventHead
-		}else {
-			te = te.next
 		}
+		//else {
+		//	te = te.next
+		//}
 	}
 
 	return processed
@@ -175,7 +178,7 @@ func AeCreateTimeEvent(server *YedisServer, milliseconds int, proc AeTimeProc, c
 
 	//将当前头部赋值给下一个，将当前的时间事件赋值给头部
 	te.next = server.El.TimeEventHead
-	server.El.TimeEventHead = te
+ 	server.El.TimeEventHead = te
 	return id
 }
 
@@ -183,8 +186,7 @@ func AeCreateTimeEvent(server *YedisServer, milliseconds int, proc AeTimeProc, c
 func aeAddMillisecondsToNow(milliseconds int) (whenSec int, whenMs int) {
 
 	//获取当前时间
-	curMs := utils.CurrentTimeMillis()
-	curSec := curMs / 1e3
+	curSec, curMs := utils.CurrentSecondAndMillis()
 
 	whenSec = curSec + milliseconds/1000
 	whenMs = curMs + milliseconds%1000

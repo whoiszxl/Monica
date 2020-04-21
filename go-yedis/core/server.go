@@ -15,6 +15,7 @@ type YedisServer struct {
 	Unixtime int //每一个cron定时任务都会更新的时间
 	Mstime int //和unixtime一样，只是这个是毫秒
 	El *AeEventLoop //所有的事件，链表结构，一般只有serverCron的事件
+	Cronloops int //命令执行次数的计数器
 
 	//serverCron函数执行频率,最小值1，最大值500，Redis-3.0.0默认是10，代表每秒执行十次serverCron函数
 	//serverCron函数执行类似清除过期键，处理超时连接等任务

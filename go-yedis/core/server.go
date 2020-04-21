@@ -16,6 +16,8 @@ type YedisServer struct {
 	Mstime int //和unixtime一样，只是这个是毫秒
 	El *AeEventLoop //所有的事件，链表结构，一般只有serverCron的事件
 	Cronloops int //命令执行次数的计数器
+	ShutdownAsap int //关闭服务器的标识，1：需要关闭  0：不关闭
+	Requirepass string //请求时需要验证的密码，不设置则不校验
 
 	//serverCron函数执行频率,最小值1，最大值500，Redis-3.0.0默认是10，代表每秒执行十次serverCron函数
 	//serverCron函数执行类似清除过期键，处理超时连接等任务
@@ -36,6 +38,7 @@ type YedisServer struct {
 	ClientsToClose map[string]*YedisClients //当前关闭的客户端
 
 	/* RDB persistence持久化 */
+	Loading int //是否是正在载入中的状态 1：载入中 0：载入完成
 	RdbChildPid int //执行bgsave子进程的pid，默认未执行状态为-1
 	Dirty int //存储上次数据变动前的长度
 	RdbFileName string //rdb文件名
@@ -54,12 +57,15 @@ type YedisServer struct {
 	AofBuf []string //aof缓冲区，在进入事件循环前写入
 	AofSync string //更新模式：everysec: 每秒同步一次（折中，默认值，多用此配） no：表示等操作系统进行数据缓存同步到磁盘(效率高，不安全)  always：表示每次更新操作后手动调用fsync()将数据写到磁盘（效率低，安全，一般不采用）
 	AofRewriteMinSize int //aof执行aof重新的最小大小
+	AofRewriteScheduled int //AOF是否在执行重写，重写的时候需要阻塞其他aof和rdb任务，在bgrewriteaofCommand执行的时候需要将它设置为1，在success handler中需要设置回0
+	AofFlushPostponedStart int //存储unix时间，推迟write flush的时间
 
 	/* 仅用于统计使用的字段，仅取部分 */
 	StatStartTime int64 //服务启动时间
 	StatNumCommands int16 //命令数量
 	StatNumConnections int16 //连接数量
 	StatExpiredKeys int64 //失效key的数量
+	StatPeakMemory int64 //服务器内存的峰值
 
 
 	/* 系统硬件信息 */

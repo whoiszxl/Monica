@@ -40,4 +40,10 @@ const (
 	AE_ALL_EVENTS = 3 //所有事件
 	AE_DONT_WAIT = 4 // 不阻塞，也不进行等待
 	AE_NOMORE = -1 //决定时间事件是否要持续执行的 flag
+
+
+	// 从表头向表尾进行迭代
+	AL_START_HEAD = 0
+	// 从表尾到表头进行迭代
+	AL_START_TAIL = 1
 )

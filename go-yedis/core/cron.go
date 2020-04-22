@@ -1,10 +1,10 @@
 package core
 
 import (
+	"Monica/go-yedis/command"
 	"Monica/go-yedis/persistence"
 	"Monica/go-yedis/utils"
 	"fmt"
-	"log"
 )
 
 //Redis的定时任务器，每秒钟调用config.hz次，默认是每秒十次
@@ -32,7 +32,7 @@ func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 	clientCron()
 
 	//7. 数据库相关定时任务
-	databasesCron()
+	databasesCron(server)
 
 	//8. TODO 判断是否要执行aof重写, BGSAVE 和 BGREWRITEAOF 都没有在执行,有一个 BGREWRITEAOF 在等待的时候
 	if server.RdbChildPid == -1 && server.AofChildPid == -1 && server.AofRewriteScheduled == 1 {
@@ -87,8 +87,148 @@ func Run_with_period(_ms_ int, proc PeriodProc, server *YedisServer) {
 }
 
 //数据库相关处理的执行函数
-func databasesCron() {
-	log.Println("开始执行databasesCron", utils.CurrentTimeMillis())
+func databasesCron(server *YedisServer) {
+	// 如果是从服务器，不能主动清除过期键
+	if server.ActiveExpireEnabled == 1 && server.Masterhost == "" {
+		// 清除模式：CYCLE_SLOW ，尽量多清除过期键
+		activeExpireCycle(server, ACTIVE_EXPIRE_CYCLE_SLOW)
+	}
+}
+
+//删除数据库中过期的键
+//校验的数据库数量不会超过REDIS_DBCRON_DBS_PER_CALL
+//类型为ACTIVE_EXPIRE_CYCLE_FAST，执行快速模式，执行的时长不会超过EXPIRE_FAST_CYCLE_DURATION毫秒，并在EXPIRE_FAST_CYCLE_DURATION毫秒内不会再次执行
+//类型为ACTIVE_EXPIRE_CYCLE_SLOW，执行正常模式，执行时间限制为REDIS_HS常量的一个百分比，百分比由 REDIS_EXPIRELOOKUPS_TIME_PERC 定义
+func activeExpireCycle(server *YedisServer, expireType int) {
+
+	current_db := 0 //当前执行的数据库编号
+	timelimit_exit := 0 //是否达到了快速模式的时间限制
+	last_fast_cycle := 0 //最后一个快速循环运行时
+
+	j, iteration := 0, 0
+
+	//每次处理的数据库数量
+	dbs_per_call := REDIS_DBCRON_DBS_PER_CALL
+
+	//函数开始执行的时间
+	start := utils.CurrentTimeMillis()
+
+	//快速模式
+	if expireType == ACTIVE_EXPIRE_CYCLE_FAST {
+		if  timelimit_exit == 0 {
+			return
+		}
+		if start < last_fast_cycle + ACTIVE_EXPIRE_CYCLE_FAST_DURATION*2 {
+			return
+		}
+		last_fast_cycle = start
+	}
+
+	//如果遇到了时间限制，这次需要对所有数据库进行扫描，避免过多过期键占用空间
+	if dbs_per_call > server.DbNum || timelimit_exit != 0 {
+		dbs_per_call = server.DbNum
+	}
+
+	//获取函数处理的微秒时间上限
+	timelimit := 1000000 * ACTIVE_EXPIRE_CYCLE_SLOW_TIME_PERC/server.Hz/100
+	timelimit_exit = 0
+	if timelimit <= 0 {
+		timelimit = 1
+	}
+
+	//快速模式最多运行FAST_DURATION微秒,默认值为1000微秒
+	if expireType == ACTIVE_EXPIRE_CYCLE_FAST {
+		timelimit = ACTIVE_EXPIRE_CYCLE_FAST_DURATION
+	}
+
+	//遍历数据库
+	for j = 0; j < dbs_per_call; j++ {
+		var expired int
+		//获取需要处理的数据库，并将游标+1
+		db := server.ServerDb[current_db % server.DbNum]
+		current_db++
+
+		for expired > ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP/4 {
+			var num,now,ttl_sum,ttl_samples int
+
+			//获取当前库中有多少过期键值对
+			num = len(db.Expires)
+			if num == 0 {
+				db.AvgTTL = 0
+				break
+			}
+			now = utils.CurrentTimeMillis()
+
+			//Redis是采用Dict字典，需要扩容等操作，Yedis不采用这种，没有复杂的查找操作，直接遍历压过去就好了
+			//Redis Dict结构地址：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/dict.h#L135
+
+			// 已处理过期键计数器,键总TTL计数,总共处理的键计数器
+			expired,ttl_sum,ttl_samples = 0,0,0
+
+			//每次最多处理20个键
+			if num > ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP {
+				num = ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP
+			}
+
+			//开始随机获取数据库中的带过期的键，判断是否真的过期了，过期删除并计数，没过期就接着循环
+			//这里暂用一下，随机感觉比顺序遍历更消耗内存
+			for num != 0 {
+				key, value := DictGetRandomKey(db.Expires)
+				ttl := value - now
+				if activeExpireCycleTryExpire(db, key, value, now) == 1 {
+					expired++
+				}
+				if ttl < 0 {
+					ttl = 0
+				}
+				ttl_sum += ttl //键累计的TTL
+				ttl_samples++ //键累计的个数
+			}
+
+			//统计平均TTL
+			if ttl_samples > 0 {
+				avg_ttl := ttl_sum / ttl_samples
+				//第一次设置平均TTL
+				if db.AvgTTL == 0 {
+					db.AvgTTL = int64(avg_ttl)
+				}
+				//获取上次平均TTL和这次的平均值
+				db.AvgTTL = (db.AvgTTL + int64(avg_ttl))/2
+			}
+
+			iteration++
+
+			//每16次遍历执行一次,并且需要遍历的时间超过timelimit
+			if iteration & 16 == 0 && (utils.CurrentTimeMillis() - start > timelimit){
+				timelimit_exit = 1
+			}
+
+			if timelimit_exit == 1 {
+				return
+			}
+		}
+	}
+
+}
+
+//判断是否过期，过期就删除这个key
+func activeExpireCycleTryExpire(db *YedisDb, key *YedisObject, expiredTime int, now int) int {
+	//已经过期
+	if now > expiredTime {
+		ret := command.LookupKey(db.Data, key)
+		if ret == nil {
+			return 0
+		}
+		//删除键
+		DbDelete(db, key)
+
+		//TODO 传播过期命令 propagateExpire
+		//TODO 发送事件 notifyKeyspaceEvent
+		//TODO 减少引用计数 decrRefCount
+		return 1
+	}else {
+		return 0
+	}
 }
 
 //客户端相关定时任务

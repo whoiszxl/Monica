@@ -18,6 +18,7 @@ type YedisServer struct {
 	Cronloops int //命令执行次数的计数器
 	ShutdownAsap int //关闭服务器的标识，1：需要关闭  0：不关闭
 	Requirepass string //请求时需要验证的密码，不设置则不校验
+	ActiveExpireEnabled int //是否打开键失效的策略，可以在测试时或是其他情况下禁用
 
 	//serverCron函数执行频率,最小值1，最大值500，Redis-3.0.0默认是10，代表每秒执行十次serverCron函数
 	//serverCron函数执行类似清除过期键，处理超时连接等任务
@@ -59,6 +60,12 @@ type YedisServer struct {
 	AofRewriteMinSize int //aof执行aof重新的最小大小
 	AofRewriteScheduled int //AOF是否在执行重写，重写的时候需要阻塞其他aof和rdb任务，在bgrewriteaofCommand执行的时候需要将它设置为1，在success handler中需要设置回0
 	AofFlushPostponedStart int //存储unix时间，推迟write flush的时间
+
+	/* Replication (slave) 主从 */
+	Masterauth string //主服务器验证密码
+	Masterhost string // 主服务器的地址
+	Masterport int // 主服务器端口
+	ReplTimeout int // 超时时间
 
 	/* 仅用于统计使用的字段，仅取部分 */
 	StatStartTime int64 //服务启动时间

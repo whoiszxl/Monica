@@ -1,11 +1,17 @@
 package core
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/persistence"
 	"Monica/go-yedis/utils"
 	"fmt"
 )
+
+const ACTIVE_EXPIRE_CYCLE_SLOW = 0
+const ACTIVE_EXPIRE_CYCLE_FAST = 1
+const REDIS_DBCRON_DBS_PER_CALL = 16
+const ACTIVE_EXPIRE_CYCLE_FAST_DURATION = 1000
+const ACTIVE_EXPIRE_CYCLE_SLOW_TIME_PERC = 25
+const ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP = 20
 
 //Redis的定时任务器，每秒钟调用config.hz次，默认是每秒十次
 //其中Yedis实现的异步操作如下:
@@ -215,7 +221,7 @@ func activeExpireCycle(server *YedisServer, expireType int) {
 func activeExpireCycleTryExpire(db *YedisDb, key *YedisObject, expiredTime int, now int) int {
 	//已经过期
 	if now > expiredTime {
-		ret := command.LookupKey(db.Data, key)
+		ret := db.Data[key]
 		if ret == nil {
 			return 0
 		}

@@ -137,6 +137,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	yedis.Hz = dbConfig.Hz             //配置任务执行频率
 	yedis.MaxClients = netConfig.NetMaxclients //客户端连接的最大数
 	yedis.El = core.AeCreateEventLoop(yedis.MaxClients + 96) //创建时间循环并赋值，暂时写死这个值
+	yedis.ActiveExpireEnabled = 1      //打开过期键的清除策略
 	initDb()                           //初始化server中的16个数据库
 
 	//2. 网络配置

@@ -1,6 +1,10 @@
 package ds
 
-import "Monica/go-yedis/core"
+// 从表头向表尾进行迭代
+const AL_START_HEAD = 0
+
+// 从表尾到表头进行迭代
+const AL_START_TAIL = 1
 
 //双向链表节点结构体
 type ListNode struct {
@@ -166,9 +170,9 @@ func ListDelNode(list *LinkedList, node *ListNode) {
 func ListGetIterator(list *LinkedList, direction int) *ListIter {
 	iter := new(ListIter)
 
-	if direction == core.AL_START_HEAD {
+	if direction == AL_START_HEAD {
 		iter.Next = list.Head
-	}else if direction == core.AL_START_TAIL {
+	}else if direction == AL_START_TAIL {
 		iter.Next = list.Tail
 	}
 
@@ -180,14 +184,14 @@ func ListGetIterator(list *LinkedList, direction int) *ListIter {
 //设置迭代器的方向为AL_START_HEAD
 func ListRewind(list *LinkedList, li *ListIter) {
 	li.Next = list.Head
-	li.Direction = core.AL_START_HEAD
+	li.Direction = AL_START_HEAD
 }
 
 
 //设置迭代器的方向为AL_START_TAIL
 func ListRewindTail(list *LinkedList, li *ListIter) {
 	li.Next = list.Tail
-	li.Direction = core.AL_START_TAIL
+	li.Direction = AL_START_TAIL
 }
 
 //获取迭代器当前指向的节点，并将指针移动一位
@@ -195,9 +199,9 @@ func ListNext(iter *ListIter) *ListNode {
 	current := iter.Next
 	if current != nil {
 		//根据方向指向下一个节点
-		if iter.Direction == core.AL_START_HEAD {
+		if iter.Direction == AL_START_HEAD {
 			iter.Next = current.Next
-		}else if iter.Direction == core.AL_START_TAIL {
+		}else if iter.Direction == AL_START_TAIL {
 			iter.Next = current.Prev
 		}
 	}
@@ -208,10 +212,13 @@ func ListNext(iter *ListIter) *ListNode {
 //查找链表中和key匹配的节点
 func ListSearchKey(list *LinkedList, key interface{}) *ListNode {
 
-	iter := ListGetIterator(list, core.AL_START_HEAD)
-	var node *ListNode
+	iter := ListGetIterator(list, AL_START_HEAD)
 
-	for node = ListNext(iter); node != nil; {
+	for {
+		node := ListNext(iter)
+		if node == nil {
+			break
+		}
 		if key == node.Value {
 			return node
 		}
@@ -225,13 +232,15 @@ func ListIndex(list *LinkedList, index int) *ListNode {
 	if index < 0 {
 		index = (-index)-1
 		n = list.Tail
-		for index-1 != 0 && n != nil{
+		for index != 0 && n != nil{
 			n = n.Prev
+			index--
 		}
 	}else {
 		n = list.Head
-		for index-1 != 0 && n != nil{
+		for index != 0 && n != nil{
 			n = n.Next
+			index--
 		}
 	}
 	return n

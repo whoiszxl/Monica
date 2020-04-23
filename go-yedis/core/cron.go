@@ -154,7 +154,7 @@ func activeExpireCycle(server *YedisServer, expireType int) {
 		db := server.ServerDb[current_db % server.DbNum]
 		current_db++
 
-		for expired > ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP/4 {
+		for {
 			var num,now,ttl_sum,ttl_samples int
 
 			//获取当前库中有多少过期键值对
@@ -189,6 +189,7 @@ func activeExpireCycle(server *YedisServer, expireType int) {
 				}
 				ttl_sum += ttl //键累计的TTL
 				ttl_samples++ //键累计的个数
+				num--
 			}
 
 			//统计平均TTL
@@ -211,6 +212,10 @@ func activeExpireCycle(server *YedisServer, expireType int) {
 
 			if timelimit_exit == 1 {
 				return
+			}
+
+			if expired < ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP/4 {
+				break
 			}
 		}
 	}

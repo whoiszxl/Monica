@@ -80,7 +80,7 @@ func main() {
 	defer netListener.Close()
 
 	//开始运行事件处理器，生命周期为Redis服务器创建到销毁
-	core.AeMain(yedis)
+	go core.AeMain(yedis)
 
 	//循环监听新连接，将新连接放入go协程中处理
 	for {

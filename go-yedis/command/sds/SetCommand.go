@@ -1,6 +1,7 @@
 package sds
 
 import (
+	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
 	"strconv"
 )
@@ -23,8 +24,15 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 		//简化一下，int类型也直接保存到sds中
 		if stringValue, ok3 := robjValue.Ptr.(string); ok3 {
 
-			//创建一个sdshdr保存到字典中
-			robjKey := core.CreateSdsObject(core.OBJ_ENCODING_RAW, stringKey)
+			//查询是否存在
+			isExist := command.GetKeyObj(c.Db.Data, robjKey)
+			if isExist != nil {
+				robjKey = isExist
+			}else {
+				//创建一个sdshdr保存到字典中
+				robjKey = core.CreateSdsObject(core.OBJ_ENCODING_RAW, stringKey)
+			}
+
 			//判断是否能转int，能转则设置encoding的方式
 			if _, err := strconv.Atoi(stringValue); err == nil {
 				robjValue := core.CreateSdsObject(core.OBJ_ENCODING_INT, stringValue)

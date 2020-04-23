@@ -54,20 +54,46 @@ func (c *YedisClients) ProcessCommandInfo() error {
 //传入client，执行client中的命令
 func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 
-	commandName, ok := c.Argv[0].Ptr.(string)
-	if !ok {
-		log.Println("error cmd")
+	//quit命令单独处理
+	if c.Argv[0].Ptr.(string) == "quit" {
+		AddReplyStatus(c, "bye bye")
 		os.Exit(1)
 	}
 
+	//校验传入的命令有效性
+	commandName, ok := c.Argv[0].Ptr.(string)
+	if !ok {
+		log.Println("error cmd")
+		return
+	}
+
+	//查找Yedis是否支持此命令
 	cmd := LookupCommand(commandName, s)
+
+	//校验参数个数是否正确
+	if (cmd.Arity > 0 && cmd.Arity != c.Argc) || (c.Argc < -cmd.Arity) {
+		AddReplyError(c, fmt.Sprintf("(error) wrong number of arguments for '%s' command", cmd.Name))
+		return
+	}
+
+	//密码校验
+	if s.Requirepass != "" && c.Authenticated != 1 {
+		AddReplyError(c, "NO AUTH")
+		return
+	}
+
+	//TODO 集群处理
+
+
+	//TODO 如果设置了最大内存，检查是否超过限制，超过了则去删除过期键来释放内存
+
 	if cmd != nil {
 		c.Cmd = cmd
 		call(c, s)
 	}else {
 		AddReplyError(c, fmt.Sprintf("(error) ERR unknown command '%s'", commandName))
+		return
 	}
-
 }
 
 //执行Client中的命令
@@ -77,8 +103,8 @@ func call(c *YedisClients, s *YedisServer) {
 	dirty = s.Dirty - dirty
 
 	//判断是否需要aof，开启了则将命令写入server的aofBuff缓冲区
-	if s.AofEnabled == ENABLE {
-		s.AofBuf = append(s.AofBuf, c.QueryBuf)
+	if s.AofState == ENABLE {
+		s.AofBuf = s.AofBuf + c.QueryBuf
 	}
 }
 

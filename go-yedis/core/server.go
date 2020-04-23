@@ -51,11 +51,12 @@ type YedisServer struct {
 
 	/* AOF persistence持久化 */
 	AofChildPid int //执行aof重写的子进程id，默认未执行状态为-1
-	AofEnabled int //是否开启Aof
-	AofState string //aof状态，[0: OFF] [1: ON] [2: WAIT_REWRITE]
+	AofEnabled string ////aof状态，[0: OFF] [1: ON] [2: WAIT_REWRITE]
+	AofState int //是否开启Aof
 	AofFileName string //aof文件名
+	AofFd uintptr // aof文件描述符
 	AofCurrentSize int //aof文件当前大小
-	AofBuf []string //aof缓冲区，在进入事件循环前写入
+	AofBuf string //aof缓冲区，在进入事件循环前写入
 	AofSync string //更新模式：everysec: 每秒同步一次（折中，默认值，多用此配） no：表示等操作系统进行数据缓存同步到磁盘(效率高，不安全)  always：表示每次更新操作后手动调用fsync()将数据写到磁盘（效率低，安全，一般不采用）
 	AofRewriteMinSize int //aof执行aof重新的最小大小
 	AofRewriteScheduled int //AOF是否在执行重写，重写的时候需要阻塞其他aof和rdb任务，在bgrewriteaofCommand执行的时候需要将它设置为1，在success handler中需要设置回0

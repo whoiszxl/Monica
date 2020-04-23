@@ -27,7 +27,7 @@ func InfoCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	//持久化信息 persistence
 	rdbFileName := "rdb_file_name:" + s.RdbFileName
-	aofEnabled := "aof_enabled:" + strconv.Itoa(s.AofEnabled)
+	aofEnabled := "aof_enabled:" + s.AofEnabled
 	aofFileName := "aof_file_name:" + s.AofFileName
 	aofCurrentSize := "aof_current_size:" + strconv.Itoa(s.AofCurrentSize)
 	aofSync := "aof_sync:" + s.AofSync

@@ -13,6 +13,7 @@ import (
 	"net"
 	"os"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -22,6 +23,10 @@ const (
 
 	//默认数据库的键值对初始容量
 	defaultDbDictCapacity = 100
+
+	//aof功能开闭状态
+	REDIS_AOF_OFF = 0
+	REDIS_AOF_ON = 1
 )
 
 //创建服务端实例
@@ -82,6 +87,17 @@ func main() {
 	//开始运行事件处理器，生命周期为Redis服务器创建到销毁
 	go core.AeMain(yedis)
 
+	//如果aof功能打开了，则打开或创建一个aof文件
+	if yedis.AofState == REDIS_AOF_ON {
+		// 以只写的模式，打开文件
+		f, err := os.OpenFile(yedis.AofFileName, os.O_WRONLY|syscall.O_CREAT|syscall.O_APPEND, 0644)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		yedis.AofFd = f.Fd()
+	}
+
 	//循环监听新连接，将新连接放入go协程中处理
 	for {
 		conn, err := netListener.Accept()
@@ -90,6 +106,8 @@ func main() {
 		}
 		go handle(conn)
 	}
+
+
 }
 
 //处理连接请求
@@ -153,11 +171,11 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 	//4. AOF persistence持久化
 	if aofConfig.AofAppendonly == "no" { //配置是否开启aof：number
-		yedis.AofEnabled = 0
+		yedis.AofState = 0
 	} else {
-		yedis.AofEnabled = 1
+		yedis.AofState = 1
 	}
-	yedis.AofState = aofConfig.AofAppendonly        //配置是否开启aof：字符串
+	yedis.AofEnabled = aofConfig.AofAppendonly        //配置是否开启aof：字符串
 	yedis.AofFileName = aofConfig.AofAppendfilename //配置aof文件名
 	yedis.AofSync = aofConfig.AofAppendfsync        //配置同步文件的策略
 
@@ -180,27 +198,27 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	yedis.SystemCpuPercent = percent[0] //CPU使用百分比情况
 
 	//初始化服务支持命令
-	getCommand := &core.YedisCommand{Name: "get", CommandProc: sds.GetCommand}
-	setCommand := &core.YedisCommand{Name: "set", CommandProc: sds.SetCommand}
-	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: sds.StrlenCommand}
-	appendCommand := &core.YedisCommand{Name: "append", CommandProc: sds.AppendCommand}
-	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: sds.GetrangeCommand}
-	mgetCommand := &core.YedisCommand{Name: "mget", CommandProc: sds.MgetCommand}
+	getCommand := &core.YedisCommand{Name: "get", CommandProc: sds.GetCommand, Arity: 2}
+	setCommand := &core.YedisCommand{Name: "set", CommandProc: sds.SetCommand, Arity: 3}
+	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: sds.StrlenCommand, Arity: 2}
+	appendCommand := &core.YedisCommand{Name: "append", CommandProc: sds.AppendCommand, Arity: 3}
+	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: sds.GetrangeCommand, Arity: 4}
+	mgetCommand := &core.YedisCommand{Name: "mget", CommandProc: sds.MgetCommand, Arity: 0}
 
-	incrCommand := &core.YedisCommand{Name: "incr", CommandProc: sds.IncrCommand}
-	incrbyCommand := &core.YedisCommand{Name: "incrby", CommandProc: sds.IncrbyCommand}
-	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand}
-	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand}
+	incrCommand := &core.YedisCommand{Name: "incr", CommandProc: sds.IncrCommand, Arity: 2}
+	incrbyCommand := &core.YedisCommand{Name: "incrby", CommandProc: sds.IncrbyCommand, Arity: 3}
+	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand, Arity: 2}
+	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand, Arity: 3}
 
-	pexpireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: sds.PexpireCommand}
-	pexpireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.PexpireatCommand}
-	expireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: sds.ExpireCommand}
-	expireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.ExpireatCommand}
+	pexpireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: sds.PexpireCommand, Arity: 3}
+	pexpireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.PexpireatCommand, Arity: 3}
+	expireCommand := &core.YedisCommand{Name: "expire", CommandProc: sds.ExpireCommand, Arity: 3}
+	expireatCommand := &core.YedisCommand{Name: "expireat", CommandProc: sds.ExpireatCommand, Arity: 3}
 
-	pttlCommand := &core.YedisCommand{Name: "pttl", CommandProc: sds.PttlCommand}
-	ttlCommand := &core.YedisCommand{Name: "ttl", CommandProc: sds.TtlCommand}
+	pttlCommand := &core.YedisCommand{Name: "pttl", CommandProc: sds.PttlCommand, Arity: 2}
+	ttlCommand := &core.YedisCommand{Name: "ttl", CommandProc: sds.TtlCommand, Arity: 2}
 
-	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand}
+	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand, Arity: 1}
 
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,

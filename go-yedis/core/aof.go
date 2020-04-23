@@ -1,4 +1,4 @@
-package persistence
+package core
 
 import (
 	"bytes"
@@ -8,6 +8,12 @@ import (
 	"os"
 	"syscall"
 )
+
+
+//将命令追加到aof文件中
+func FeedAppendOnlyFile(server *YedisServer, cmd *YedisCommand, dbId int8, argv []*YedisObject, argc int) {
+
+}
 
 //AppendToFile 写文件
 func AppendToFile(fileName string, content string) error {

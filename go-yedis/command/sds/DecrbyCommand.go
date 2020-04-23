@@ -34,6 +34,7 @@ func DecrbyCommand(c *core.YedisClients, s *core.YedisServer) {
 			intNumber = intNumber - addNumber
 			sdshdr.Buf = strconv.Itoa(intNumber)
 			robj.Ptr = sdshdr
+			s.Dirty++
 			core.AddReplyStatus(c, sdshdr.Buf)
 		}
 	}

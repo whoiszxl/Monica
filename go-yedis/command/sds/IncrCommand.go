@@ -32,6 +32,7 @@ func IncrCommand(c *core.YedisClients, s *core.YedisServer) {
 		intNumber = intNumber + 1
 		sdshdr.Buf = strconv.Itoa(intNumber)
 		robj.Ptr = sdshdr
+		s.Dirty++
 		core.AddReplyStatus(c, sdshdr.Buf)
 	}
 }

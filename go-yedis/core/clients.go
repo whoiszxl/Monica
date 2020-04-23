@@ -12,4 +12,5 @@ type YedisClients struct {
 	Cmd *YedisCommand //待执行的客户端命令
 	LastCommand *YedisCommand //上一个执行的
 	Authenticated int //认证状态 0：未认证 1：已认证
+	Flags int //客户端状态标志
 }

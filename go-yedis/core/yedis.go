@@ -2,6 +2,7 @@ package core
 
 import (
 	"Monica/go-yedis/encrypt"
+	"Monica/go-yedis/utils"
 	"bytes"
 	"errors"
 	"fmt"
@@ -11,6 +12,19 @@ import (
 	"os"
 )
 
+const (
+	REDIS_CALL_SLOWLOG = 1
+	REDIS_CALL_STATS = 2
+	REDIS_CALL_PROPAGATE = 4
+	REDIS_CALL_FULL = (REDIS_CALL_SLOWLOG | REDIS_CALL_STATS | REDIS_CALL_PROPAGATE)
+
+	REDIS_AOF_OFF = 0
+	REDIS_AOF_ON = 1
+
+	REDIS_PROPAGATE_NONE = 0
+	REDIS_PROPAGATE_AOF = 1
+	REDIS_PROPAGATE_REPL = 2
+)
 //在用户发送命令过来的时候建立客户端连接
 func (s *YedisServer) CreateClient() (c *YedisClients) {
 	c = new(YedisClients)
@@ -83,13 +97,11 @@ func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 	}
 
 	//TODO 集群处理
-
-
 	//TODO 如果设置了最大内存，检查是否超过限制，超过了则去删除过期键来释放内存
 
 	if cmd != nil {
 		c.Cmd = cmd
-		call(c, s)
+		call(c, s, REDIS_CALL_FULL)
 	}else {
 		AddReplyError(c, fmt.Sprintf("(error) ERR unknown command '%s'", commandName))
 		return
@@ -97,14 +109,53 @@ func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 }
 
 //执行Client中的命令
-func call(c *YedisClients, s *YedisServer) {
+func call(c *YedisClients, s *YedisServer, flags int) {
+	//保留旧Dirty值，并在执行命令后计算差值
 	dirty := s.Dirty
+	startTime := utils.CurrentTimeMicrosecond()
 	c.Cmd.CommandProc(c, s)
+	endTime := utils.CurrentTimeMicrosecond()
+	//计算命令消耗的时间和Dirty差值,微妙级别
+	duration := endTime - startTime
 	dirty = s.Dirty - dirty
+
+	//TODO LUA相关处理
+
+	//是否需要将命令放到慢日志（Slowlog）中
+	if flags & REDIS_CALL_SLOWLOG != 0{
+		SlowlogPushEntryIfNeeded(c.Argv, c.Argc, duration)
+	}
+
+	//是否需要更新统计信息，执行命令耗费的微妙数和调用次数
+	if flags & REDIS_CALL_STATS != 0 {
+		c.Cmd.Microseconds += int64(duration)
+		c.Cmd.Calls++
+	}
+
+	//里面判断挺麻烦的，直接propagate传播一下，简化一下
+	if flags & REDIS_CALL_PROPAGATE != 0 {
+		if dirty > 0 {
+			propagate(s, c.Cmd, c.Db.ID, c.Argv, c.Argc, flags)
+		}
+	}
+
 
 	//判断是否需要aof，开启了则将命令写入server的aofBuff缓冲区
 	if s.AofState == ENABLE {
 		s.AofBuf = s.AofBuf + c.QueryBuf
+	}
+}
+
+//将命令传播到aof， slave的话先省略了
+func propagate(server *YedisServer, cmd *YedisCommand, dbId int8, argv []*YedisObject, argc int, flags int) {
+	if server.AofState != REDIS_AOF_OFF && flags & REDIS_PROPAGATE_AOF > 0 {
+		//传播到AOF
+		FeedAppendOnlyFile(server, cmd, dbId, argv, argc)
+	}
+
+	if flags & REDIS_PROPAGATE_REPL > 0 {
+		//TODO 传播到slave暂不实现
+		//replicationFeedSlaves(server.slaves,dbid,argv,argc);
 	}
 }
 

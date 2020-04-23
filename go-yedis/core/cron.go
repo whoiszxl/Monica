@@ -1,7 +1,6 @@
 package core
 
 import (
-	"Monica/go-yedis/persistence"
 	"Monica/go-yedis/utils"
 	"fmt"
 )
@@ -42,7 +41,7 @@ func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 
 	//8. TODO 判断是否要执行aof重写, BGSAVE 和 BGREWRITEAOF 都没有在执行,有一个 BGREWRITEAOF 在等待的时候
 	if server.RdbChildPid == -1 && server.AofChildPid == -1 && server.AofRewriteScheduled == 1 {
-		persistence.RewriteAppendOnlyFileBackground()
+		RewriteAppendOnlyFileBackground()
 	}
 
 	//9. TODO 此时有BGSAVE或者BGREWRITEAOF在执行，需要接收完成信号来执行Handler，此处暂时先省略
@@ -52,7 +51,7 @@ func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 		//如果没有后台重写aof和rdb bgsave, 检查是否需要执行bgsave
 		//10. 检查更新的数量是否大于配置数量，还有时间是否超过了配置时间
 		if server.Dirty >= server.SaveNumber && server.Unixtime - server.LastSaveTime > server.SaveNumber {
-			persistence.RdbSaveBackground(server.RdbFileName)
+			RdbSaveBackground(server.RdbFileName)
 		}
 	}
 

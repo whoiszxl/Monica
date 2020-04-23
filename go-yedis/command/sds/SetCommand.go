@@ -40,6 +40,7 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 		}
 	}
 
+	//每次进行增删改的时候自增1，通过这个自增来判断是否需要添加到aof缓存中
 	s.Dirty++
 	core.AddReplyStatus(c, "OK")
 }

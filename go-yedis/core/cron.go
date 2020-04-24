@@ -277,6 +277,10 @@ func flushAppendOnlyFile(server *YedisServer, force int) {
 	//更新写入后的AOF文件大小 TODO 更新的长度，不是文件大小
 	server.AofCurrentSize += len(server.AofBuf)
 
+	//释放缓存
+	server.AofBuf = ""
+
+
 }
 
 func freeClientsInAsyncFreeQueue() {

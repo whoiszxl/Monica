@@ -177,7 +177,14 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	}
 	yedis.AofEnabled = aofConfig.AofAppendonly        //配置是否开启aof：字符串
 	yedis.AofFileName = aofConfig.AofAppendfilename //配置aof文件名
-	yedis.AofSync = aofConfig.AofAppendfsync        //配置同步文件的策略
+	switch aofConfig.AofAppendfsync { //配置同步文件的策略
+	case "no":
+		yedis.AofFsync = core.AOF_FSYNC_NO
+	case "everysec":
+		yedis.AofFsync = core.AOF_FSYNC_EVERYSEC
+	case "always":
+		yedis.AofFsync = core.AOF_FSYNC_ALWAYS
+	}
 
 	//5. 仅用于统计使用的字段，仅取部分
 	yedis.StatStartTime = time.Now().UnixNano() / 1000000 //记录服务启动时间

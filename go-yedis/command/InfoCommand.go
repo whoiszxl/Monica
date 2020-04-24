@@ -30,7 +30,7 @@ func InfoCommand(c *core.YedisClients, s *core.YedisServer) {
 	aofEnabled := "aof_enabled:" + s.AofEnabled
 	aofFileName := "aof_file_name:" + s.AofFileName
 	aofCurrentSize := "aof_current_size:" + strconv.Itoa(s.AofCurrentSize)
-	aofSync := "aof_sync:" + s.AofSync
+	aofSync := "aof_sync:" + s.AofFsync
 	result = appendStr(result, "[persistence]", rdbFileName, aofEnabled, aofFileName, aofCurrentSize, aofSync)
 
 	//仅用于统计使用的字段，仅取部分 Stats

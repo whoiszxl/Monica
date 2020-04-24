@@ -40,4 +40,8 @@ const (
 	AE_ALL_EVENTS = 3 //所有事件
 	AE_DONT_WAIT = 4 // 不阻塞，也不进行等待
 	AE_NOMORE = -1 //决定时间事件是否要持续执行的 flag
+
+	AOF_FSYNC_NO = 0
+	AOF_FSYNC_ALWAYS = 1
+	AOF_FSYNC_EVERYSEC = 2
 )

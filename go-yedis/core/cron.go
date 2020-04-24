@@ -59,7 +59,7 @@ func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 
 	//12. 是否要将AOF缓冲区内容写入AOF文件中，因为AOF执行中，也有执行的命令，为了保持同步，需要将AOF缓冲区的数据也写入
 	if server.AofFlushPostponedStart != 0 {
-		flushAppendOnlyFile(0)
+		flushAppendOnlyFile(server, 0)
 	}
 
 	//13. 关闭需要异步关闭的客户端和暂停的客户端
@@ -246,8 +246,35 @@ func clientCron() {
 
 }
 
-//
-func flushAppendOnlyFile(flags int) {
+//将server.aof_buf刷到文件中
+//策略为everysec时，如果后台有fsync运行，可能会延迟flush操作
+//force为1需要强制刷入，0则可能延迟
+func flushAppendOnlyFile(server *YedisServer, force int) {
+
+	//校验缓存中是否有值
+	if server.AofBuf == "" {
+		return
+	}
+
+	if server.AofFsync == AOF_FSYNC_EVERYSEC {
+		//todo 判断是否有sync在后台运行 sync_in_progress = bioPendingJobsOfType(REDIS_BIO_AOF_FSYNC) != 0;
+	}
+	//TODO 推迟操作先不做
+
+	server.AofFlushPostponedStart = 0
+
+
+	//看C的实现，是先调用write写入aof文件，然后再判断是不是__linux__系统，linux系统再调fdatasync刷入，其他系统调fsync,这里简化一下吧，golang直接write就好了吧
+	//Redis源代码地址：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/aof.c#L441
+	err := AppendToFile(server.AofFileName, server.AofBuf)
+	if err != nil {
+		fmt.Println("aof file write fail.")
+		//TODO 写入出错，需要写入到日志里
+		return
+	}
+
+	//更新写入后的AOF文件大小 TODO 更新的长度，不是文件大小
+	server.AofCurrentSize += len(server.AofBuf)
 
 }
 

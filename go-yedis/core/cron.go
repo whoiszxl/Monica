@@ -58,6 +58,7 @@ func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 	//11. TODO Trigger an AOF rewrite if needed, 不清楚为什么还要再一次触发rewriteAppendOnlyFileBackground()
 
 	//12. 是否要将AOF缓冲区内容写入AOF文件中，因为AOF执行中，也有执行的命令，为了保持同步，需要将AOF缓冲区的数据也写入
+	server.AofFlushPostponedStart = server.Unixtime
 	if server.AofFlushPostponedStart != 0 {
 		flushAppendOnlyFile(server, 0)
 	}

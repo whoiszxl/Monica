@@ -61,6 +61,7 @@ type YedisServer struct {
 	AofRewriteMinSize int //aof执行aof重新的最小大小
 	AofRewriteScheduled int //AOF是否在执行重写，重写的时候需要阻塞其他aof和rdb任务，在bgrewriteaofCommand执行的时候需要将它设置为1，在success handler中需要设置回0
 	AofFlushPostponedStart int //存储unix时间，推迟write flush的时间
+	AofSelectedDb int8 // aof执行操作时的目标数据库
 
 	/* Replication (slave) 主从 */
 	Masterauth string //主服务器验证密码

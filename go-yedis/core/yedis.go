@@ -135,22 +135,17 @@ func call(c *YedisClients, s *YedisServer, flags int) {
 	//里面判断挺麻烦的，直接propagate传播一下，简化一下
 	if flags & REDIS_CALL_PROPAGATE != 0 {
 		if dirty > 0 {
-			propagate(s, c.Cmd, c.Db.ID, c.Argv, c.Argc, flags)
+			propagate(s, c, flags)
 		}
 	}
 
-
-	//判断是否需要aof，开启了则将命令写入server的aofBuff缓冲区
-	if s.AofState == ENABLE {
-		s.AofBuf = s.AofBuf + c.QueryBuf
-	}
 }
 
 //将命令传播到aof， slave的话先省略了
-func propagate(server *YedisServer, cmd *YedisCommand, dbId int8, argv []*YedisObject, argc int, flags int) {
+func propagate(server *YedisServer, client *YedisClients, flags int) {
 	if server.AofState != REDIS_AOF_OFF && flags & REDIS_PROPAGATE_AOF > 0 {
 		//传播到AOF
-		FeedAppendOnlyFile(server, cmd, dbId, argv, argc)
+		FeedAppendOnlyFile(server, client)
 	}
 
 	if flags & REDIS_PROPAGATE_REPL > 0 {

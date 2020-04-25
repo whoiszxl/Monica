@@ -3,6 +3,7 @@ package core
 import (
 	"Monica/go-yedis/utils"
 	"fmt"
+	"os"
 )
 
 const ACTIVE_EXPIRE_CYCLE_SLOW = 0
@@ -265,14 +266,20 @@ func flushAppendOnlyFile(server *YedisServer, force int) {
 	server.AofFlushPostponedStart = 0
 
 
-	//看C的实现，是先调用write写入aof文件，然后再判断是不是__linux__系统，linux系统再调fdatasync刷入，其他系统调fsync,这里简化一下吧，golang直接write就好了吧
+	//看C的实现，是先调用write写入aof文件，然后再判断是不是__linux__系统，linux系统再调fdatasync刷入，其他系统调fsync
+	//write和flush的参考：https://www.jb51.net/article/101062.htm
+	//write调用后不能保证数据成功写入磁盘，因为内核会缓存磁盘I/O操作,将数据写入磁盘有两种办法，办法如下：
+	//办法一：os.OpenFile的时候指定os.O_SYNC,write的时候是同步阻塞的
+	//办法二：调用File.Sync()，底层是系统调用fsync，将数据和元数据刷到磁盘，或者fdatasync，只将数据刷到磁盘
 	//Redis源代码地址：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/aof.c#L441
-	err := AppendToFile(server.AofFileName, server.AofBuf)
+	file, err := AppendToFile(server.AofFd, server.AofBuf)
 	if err != nil {
 		fmt.Println("aof file write fail.")
 		//TODO 写入出错，需要写入到日志里
 		return
 	}
+
+
 
 	//更新写入后的AOF文件大小 TODO 更新的长度，不是文件大小
 	server.AofCurrentSize += len(server.AofBuf)
@@ -280,6 +287,16 @@ func flushAppendOnlyFile(server *YedisServer, force int) {
 	//释放缓存
 	server.AofBuf = ""
 
+	//判断什么时候执行fsync
+	if server.AofFsync == AOF_FSYNC_ALWAYS {
+		//执行fsync
+		AofFsync(file)
+		server.AofLastFsync = server.Unixtime
+	}else if server.AofFsync == AOF_FSYNC_EVERYSEC && server.Unixtime > server.AofLastFsync {
+		//协程运行
+		go AofFsync(file)
+		server.AofLastFsync = server.Unixtime
+	}
 
 }
 
@@ -289,6 +306,15 @@ func freeClientsInAsyncFreeQueue() {
 
 func clientsArePaused() {
 
+}
+
+//aof fsync执行
+func AofFsync(file *os.File) {
+	//执行fsync
+	err := file.Sync()
+	if err != nil {
+		fmt.Println("fsync fail")
+	}
 }
 
 func RecordPeakMemory(server *YedisServer) {

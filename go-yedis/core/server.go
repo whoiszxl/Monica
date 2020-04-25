@@ -1,5 +1,7 @@
 package core
 
+import "os"
+
 //服务端结构体
 //结构体存储Yedis服务器的所有信息，包括但不限于数据库，配置参数,
 //命令表，监听端口地址，客户端列表，RDB,AOF持久化信息等
@@ -52,14 +54,15 @@ type YedisServer struct {
 	AofEnabled             string  ////aof状态，[0: OFF] [1: ON] [2: WAIT_REWRITE]
 	AofState               int     //是否开启Aof
 	AofFileName            string  //aof文件名
-	AofFd                  uintptr // aof文件描述符
+	AofFd                  *os.File//aof文件
 	AofCurrentSize         int     //aof文件当前大小
 	AofBuf                 string  //aof缓冲区，在进入事件循环前写入
 	AofFsync               int     //更新模式：everysec: 每秒同步一次（折中，默认值，多用此配） no：表示等操作系统进行数据缓存同步到磁盘(效率高，不安全)  always：表示每次更新操作后手动调用fsync()将数据写到磁盘（效率低，安全，一般不采用）
 	AofRewriteMinSize      int     //aof执行aof重新的最小大小
 	AofRewriteScheduled    int     //AOF是否在执行重写，重写的时候需要阻塞其他aof和rdb任务，在bgrewriteaofCommand执行的时候需要将它设置为1，在success handler中需要设置回0
 	AofFlushPostponedStart int     //存储unix时间，推迟write flush的时间
-	AofSelectedDb          int8    // aof执行操作时的目标数据库
+	AofSelectedDb          int8    //aof执行操作时的目标数据库
+	AofLastFsync           int     //aof最后执行fsync的时间
 
 	/* Replication (slave) 主从 */
 	Masterauth  string //主服务器验证密码

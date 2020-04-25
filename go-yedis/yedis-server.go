@@ -90,12 +90,12 @@ func main() {
 	//如果aof功能打开了，则打开或创建一个aof文件
 	if yedis.AofState == REDIS_AOF_ON {
 		// 以只写的模式，打开文件
-		f, err := os.OpenFile(yedis.AofFileName, os.O_WRONLY|syscall.O_CREAT|syscall.O_APPEND, 0644)
+		f, err := os.OpenFile(yedis.AofFileName, os.O_WRONLY|syscall.O_CREAT, 0644)
 		if err != nil {
 			log.Println(err)
 			return
 		}
-		yedis.AofFd = f.Fd()
+		yedis.AofFd = f
 	}
 
 	//循环监听新连接，将新连接放入go协程中处理

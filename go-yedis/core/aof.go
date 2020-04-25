@@ -5,11 +5,9 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"strconv"
 	"strings"
-	"syscall"
 )
 
 
@@ -55,17 +53,10 @@ func catAppendOnlyGenericCommand(argc int,argv []*YedisObject) string {
 }
 
 //AppendToFile 写文件
-func AppendToFile(fileName string, content string) error {
-	// 以只写的模式，打开文件
-	f, err := os.OpenFile(fileName, os.O_WRONLY|syscall.O_CREAT, 0644)
-	if err != nil {
-		log.Println("aof file open failed" + err.Error())
-	} else {
-		n, _ := f.Seek(0, os.SEEK_END)
-		_, err = f.WriteAt([]byte(content), n)
-	}
-	defer f.Close()
-	return err
+func AppendToFile(f *os.File, content string) (*os.File, error) {
+	n, _ := f.Seek(0, os.SEEK_END)
+	_, err := f.WriteAt([]byte(content), n)
+	return f, err
 }
 
 //读取aof文件

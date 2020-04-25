@@ -16,3 +16,10 @@
 
 .vscode
 .idea
+
+
+
+
+
+# go-yedis
+appendonly.aof

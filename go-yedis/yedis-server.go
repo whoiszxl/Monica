@@ -2,6 +2,7 @@ package main
 
 import (
 	"Monica/go-yedis/command"
+	"Monica/go-yedis/command/db"
 	"Monica/go-yedis/command/sds"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
@@ -98,6 +99,9 @@ func main() {
 		yedis.AofFd = f
 	}
 
+	//将磁盘数据加载到内存中
+	loadDataFromDisk()
+
 	//循环监听新连接，将新连接放入go协程中处理
 	for {
 		conn, err := netListener.Accept()
@@ -171,9 +175,9 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 	//4. AOF persistence持久化
 	if aofConfig.AofAppendonly == "no" { //配置是否开启aof：number
-		yedis.AofState = 0
+		yedis.AofState = REDIS_AOF_OFF
 	} else {
-		yedis.AofState = 1
+		yedis.AofState = REDIS_AOF_ON
 	}
 	yedis.AofEnabled = aofConfig.AofAppendonly        //配置是否开启aof：字符串
 	yedis.AofFileName = aofConfig.AofAppendfilename //配置aof文件名
@@ -226,6 +230,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	ttlCommand := &core.YedisCommand{Name: "ttl", CommandProc: sds.TtlCommand, Arity: 2}
 
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand, Arity: 1}
+	selectCommand := &core.YedisCommand{Name: "select", CommandProc: db.SelectCommand, Arity: 2}
 
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
@@ -234,7 +239,6 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"append":   appendCommand,
 		"getrange": getrangeCommand,
 		"mget":     mgetCommand,
-		"info":     infoCommand,
 
 		"incr":   incrCommand,
 		"incrby": incrbyCommand,
@@ -248,6 +252,9 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 		"pttl": pttlCommand,
 		"ttl": ttlCommand,
+
+		"info": infoCommand,
+		"select": selectCommand,
 	}
 
 }
@@ -265,5 +272,26 @@ func initDb() {
 		yedis.ServerDb[i].Expires = make(core.ExpireDict, defaultDbDictCapacity)
 		yedis.ServerDb[i].AvgTTL = 0
 
+	}
+}
+
+//从磁盘中加载数据到内存中
+//Redis实现：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/redis.c#L3887
+func loadDataFromDisk() {
+	//记录开始时间，单位纳秒
+	start := utils.CurrentTimeNano()
+
+	//如果aof打开了优先使用aof，因为aof的持久化比rdb更全面一点
+	if yedis.AofState == REDIS_AOF_ON {
+		//载入AOF操作
+		if core.LoadAppendOnlyFile(yedis) == core.REDIS_OK {
+			//输出载入耗时
+			fmt.Printf("DB loaded from append only file: %.3f seconds", float64(utils.CurrentTimeNano()-start)/1000000)
+		}else {
+			//TODO 载入RDB操作
+			if core.RdbLoad(yedis.RdbFileName) == core.REDIS_OK {
+				fmt.Printf("DB loaded from disk: %.3f seconds", float64(utils.CurrentTimeNano()-start)/1000000)
+			}
+		}
 	}
 }

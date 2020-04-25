@@ -1,6 +1,10 @@
 package core
 
-import "os"
+import (
+	"Monica/go-yedis/ds"
+	"log"
+	"os"
+)
 
 //服务端结构体
 //结构体存储Yedis服务器的所有信息，包括但不限于数据库，配置参数,
@@ -40,14 +44,17 @@ type YedisServer struct {
 	ClientsToClose map[string]*YedisClients //当前关闭的客户端
 
 	/* RDB persistence持久化 */
-	Loading        int    //是否是正在载入中的状态 1：载入中 0：载入完成
-	RdbChildPid    int    //执行bgsave子进程的pid，默认未执行状态为-1
-	Dirty          int    //存储上次数据变动前的长度
-	RdbFileName    string //rdb文件名
-	RdbCompression int    //是否对rdb使用压缩
-	LastSaveTime   int    //最后一次保存RDB的时间
-	SaveTime       int    //rdb bgsave存储策略 时间  多少秒内有多少次修改则执行bgsave，原版是用数组保存，可以支持多个策略，此处先简写
-	SaveNumber     int    //rdb bgsave存储策略 次数
+	Loading            int    //是否是正在载入中的状态 1：载入中 0：载入完成
+	LoadingStartTime   int    //开始载入的时间
+	LoadingTotalBytes  int    //正在载入的数据大小
+	LoadingLoadedBytes int    //已载入的数据大小
+	RdbChildPid        int    //执行bgsave子进程的pid，默认未执行状态为-1
+	Dirty              int    //存储上次数据变动前的长度
+	RdbFileName        string //rdb文件名
+	RdbCompression     int    //是否对rdb使用压缩
+	LastSaveTime       int    //最后一次保存RDB的时间
+	SaveTime           int    //rdb bgsave存储策略 时间  多少秒内有多少次修改则执行bgsave，原版是用数组保存，可以支持多个策略，此处先简写
+	SaveNumber         int    //rdb bgsave存储策略 次数
 
 	/* AOF persistence持久化 */
 	AofChildPid            int     //执行aof重写的子进程id，默认未执行状态为-1
@@ -83,4 +90,20 @@ type YedisServer struct {
 	SystemUsedSize      uint64  //系统已用内存
 	SystemUsedPercent   float64 //内存使用百分比
 	SystemCpuPercent    float64 //CPU使用百分比
+}
+
+//AOF文件加载到内存中，通过ProcessCommand方法将所有的命令执行
+//执行命令的时候传播范围尾NONE,避免其命令循环持久化，写入慢日志等操作
+func (s *YedisServer) ProcessCommand(c *YedisClients) {
+	name, ok := c.Argv[0].Ptr.(ds.Sdshdr)
+	if !ok {
+		log.Println("aof process command error.")
+		os.Exit(1)
+	}
+
+	cmd := LookupCommand(name.Buf, s)
+	if cmd != nil {
+		c.Cmd = cmd
+		call(c, s, REDIS_CALL_NONE)
+	}
 }

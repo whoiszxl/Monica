@@ -65,3 +65,13 @@ func dictDataDelete(dict Dict, key *YedisObject) int {
 func DbAdd(db *YedisDb, key string, value *YedisObject) {
 
 }
+
+func SelectDb(c *YedisClients, s *YedisServer, id int) int {
+	if id < 0 || id >= s.DbNum {
+		return REDIS_ERR
+	}
+
+	//切换数据库
+	c.Db = s.ServerDb[id]
+	return REDIS_OK
+}

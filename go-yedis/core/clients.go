@@ -1,5 +1,11 @@
 package core
 
+import (
+	"Monica/go-yedis/encrypt"
+	"bytes"
+	"errors"
+)
+
 //
 //RedisClient原结构体地址：https://github.com/antirez/redis/blob/30724986659c6845e9e48b601e36aa4f4bca3d30/src/server.h#L765
 type YedisClients struct {
@@ -13,4 +19,19 @@ type YedisClients struct {
 	LastCommand *YedisCommand //上一个执行的
 	Authenticated int //认证状态 0：未认证 1：已认证
 	Flags int //客户端状态标志
+}
+
+
+// ProcessInputBuffer 处理客户端请求信息
+func (c *YedisClients) ProcessInputBuffer() error {
+	decoder := encrypt.NewDecoder(bytes.NewReader([]byte(c.QueryBuf)))
+	if resp, err := decoder.DecodeMultiBulk(); err == nil {
+		c.Argc = len(resp)
+		c.Argv = make([]*YedisObject, c.Argc)
+		for k, s := range resp {
+			c.Argv[k] = CreateSdsObject(OBJ_ENCODING_RAW, string(s.Value))
+		}
+		return nil
+	}
+	return errors.New("ProcessInputBuffer failed")
 }

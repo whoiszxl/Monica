@@ -12,6 +12,11 @@ func CurrentTimeMicrosecond() int {
 	return int(time.Now().UnixNano() / 1e3)
 }
 
+//获取当前时间的纳秒时间戳
+func CurrentTimeNano() int {
+	return int(time.Now().UnixNano())
+}
+
 //获取当前时间的秒级时间戳
 func CurrentTimeSecond() int{
 	return int(time.Now().UnixNano() / 1e9)

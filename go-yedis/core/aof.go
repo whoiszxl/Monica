@@ -5,9 +5,11 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 
@@ -17,10 +19,8 @@ func FeedAppendOnlyFile(server *YedisServer, client *YedisClients) {
 	buf := ""
 
 	//刚开始执行的时候需要SELECT数据库
-	if client.Db.ID != server.AofSelectedDb {
-		buf = fmt.Sprintf("*2\r\n$6\r\nSELECT\r\n$%lu\r\n%s\r\n", len(strconv.Itoa(int(client.Db.ID))), client.Db.ID)
-		server.AofSelectedDb = client.Db.ID
-	}
+	buf = "*2\r\n$6\r\nselect\r\n$"+ strconv.Itoa(len(strconv.Itoa(int(client.Db.ID)))) +"\r\n" + strconv.Itoa(int(client.Db.ID)) + "\r\n"
+	server.AofSelectedDb = client.Db.ID
 
 	//TODO 需要将EXPIRE 、 PEXPIRE 和 EXPIREAT 命令转换成PEXPIREAT
 	//TODO 需要将SETEX 和 PSETEX 命令转换成 SET 和 PEXPIREAT
@@ -61,11 +61,6 @@ func AppendToFile(f *os.File, content string) (*os.File, error) {
 
 //读取aof文件
 func ReadAof(fileName string) []string {
-	f, err := os.Open(fileName)
-	if err != nil {
-		fmt.Println("aof file open failed" + err.Error())
-	}
-	defer f.Close()
 	content, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		fmt.Println("aof file read failed" + err.Error())
@@ -82,4 +77,47 @@ func ReadAof(fileName string) []string {
 //
 func RewriteAppendOnlyFileBackground() {
 
+}
+
+//将aof文件加载到内存中
+func LoadAppendOnlyFile(s *YedisServer) int {
+	//创建一个假客户端来专门执行AOF文件中的语句
+	fakeClient := createFakeClient(s)
+
+	//打开AOF文件，并检查是否有效
+	f, err := os.OpenFile(s.AofFileName, os.O_WRONLY|syscall.O_CREAT, 0644)
+	if err != nil {
+		s.AofCurrentSize = 0
+		fmt.Println("open aof file fail")
+		return REDIS_ERR
+	}
+	//暂时关闭aof，防止执行multi时exec命令被传播到了现在在读取的aof文件中
+	s.AofState = REDIS_AOF_OFF
+
+	//设置服务器的状态为正在载入中,Redis的这个设计是将此个aof和rdb共用的函数放在rdb.c文件里，Redis的不分包的代码属实难受
+	StartLoading(s, f)
+
+	//Redis这个时候还要处理PUBSUB模块，先省了省了... 代码：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/aof.c#L887
+	//以下部分先简化一下，不清楚的可以看Redis代码
+
+	aofData := ReadAof(s.AofFileName)
+
+	for _, v := range aofData {
+		fakeClient.QueryBuf = string(v)
+		err := fakeClient.ProcessInputBuffer()
+		if err != nil {
+			log.Println("LoadAppendOnlyFile fail", err)
+		}
+		s.ProcessCommand(fakeClient)
+	}
+	s.AofState = REDIS_AOF_ON
+	return REDIS_OK
+}
+
+//创建一个伪客户端
+//Redis代码：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/aof.c#L771
+func createFakeClient(s *YedisServer) *YedisClients {
+	fakeClient := new(YedisClients)
+	SelectDb(fakeClient, s, 0)
+	return fakeClient
 }

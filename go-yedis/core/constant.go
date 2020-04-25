@@ -31,6 +31,9 @@ const (
 	AE_OK = 0 // 成功
 	AE_ERR = -1 // 出错
 
+	REDIS_OK  = 1 // 成功
+	REDIS_ERR = 0 // 出错
+
 	AE_NONE = 0 //文件事件状态: 未设置
 	AE_READABLE = 1 //可读
 	AE_WRITABLE = 2 //可写

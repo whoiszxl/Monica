@@ -21,8 +21,19 @@ func CreateObject(objectType int, encodingType int, ptr interface{}) (o *YedisOb
 	return
 }
 
+//设置对象的编码
+func TryObjectEncoding(lobj *YedisObject) *YedisObject {
+
+}
+
 
 func CreateSdsObject(encodingType int, str string) *YedisObject {
 	sdshdr := ds.Sdsnew(str)
-	return CreateObject(OBJ_STRING, encodingType, sdshdr)
+	return CreateObject(REDIS_STRING, encodingType, sdshdr)
+}
+
+//创建一个链表编码的Yedis对象
+//代码：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/object.c#L217
+func CreateLinkedListObject() *YedisObject {
+	return CreateObject(REDIS_LIST, OBJ_ENCODING_LINKEDLIST, ds.ListCreate())
 }

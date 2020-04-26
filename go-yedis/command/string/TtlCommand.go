@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/core"

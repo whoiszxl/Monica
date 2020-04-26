@@ -3,7 +3,7 @@ package main
 import (
 	"Monica/go-yedis/command"
 	"Monica/go-yedis/command/db"
-	"Monica/go-yedis/command/sds"
+	"Monica/go-yedis/command/string"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
 	"flag"
@@ -209,25 +209,25 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	yedis.SystemCpuPercent = percent[0] //CPU使用百分比情况
 
 	//初始化服务支持命令
-	getCommand := &core.YedisCommand{Name: "get", CommandProc: sds.GetCommand, Arity: 2}
-	setCommand := &core.YedisCommand{Name: "set", CommandProc: sds.SetCommand, Arity: 3}
-	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: sds.StrlenCommand, Arity: 2}
-	appendCommand := &core.YedisCommand{Name: "append", CommandProc: sds.AppendCommand, Arity: 3}
-	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: sds.GetrangeCommand, Arity: 4}
-	mgetCommand := &core.YedisCommand{Name: "mget", CommandProc: sds.MgetCommand, Arity: 0}
+	getCommand := &core.YedisCommand{Name: "get", CommandProc: string.GetCommand, Arity: 2}
+	setCommand := &core.YedisCommand{Name: "set", CommandProc: string.SetCommand, Arity: 3}
+	strlenCommand := &core.YedisCommand{Name: "strlen", CommandProc: string.StrlenCommand, Arity: 2}
+	appendCommand := &core.YedisCommand{Name: "append", CommandProc: string.AppendCommand, Arity: 3}
+	getrangeCommand := &core.YedisCommand{Name: "getrange", CommandProc: string.GetrangeCommand, Arity: 4}
+	mgetCommand := &core.YedisCommand{Name: "mget", CommandProc: string.MgetCommand, Arity: 0}
 
-	incrCommand := &core.YedisCommand{Name: "incr", CommandProc: sds.IncrCommand, Arity: 2}
-	incrbyCommand := &core.YedisCommand{Name: "incrby", CommandProc: sds.IncrbyCommand, Arity: 3}
-	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: sds.DecrCommand, Arity: 2}
-	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: sds.DecrbyCommand, Arity: 3}
+	incrCommand := &core.YedisCommand{Name: "incr", CommandProc: string.IncrCommand, Arity: 2}
+	incrbyCommand := &core.YedisCommand{Name: "incrby", CommandProc: string.IncrbyCommand, Arity: 3}
+	decrCommand := &core.YedisCommand{Name: "decr", CommandProc: string.DecrCommand, Arity: 2}
+	decrbyCommand := &core.YedisCommand{Name: "decrby", CommandProc: string.DecrbyCommand, Arity: 3}
 
-	pexpireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: sds.PexpireCommand, Arity: 3}
-	pexpireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: sds.PexpireatCommand, Arity: 3}
-	expireCommand := &core.YedisCommand{Name: "expire", CommandProc: sds.ExpireCommand, Arity: 3}
-	expireatCommand := &core.YedisCommand{Name: "expireat", CommandProc: sds.ExpireatCommand, Arity: 3}
+	pexpireCommand := &core.YedisCommand{Name: "pexpire", CommandProc: string.PexpireCommand, Arity: 3}
+	pexpireatCommand := &core.YedisCommand{Name: "pexpireat", CommandProc: string.PexpireatCommand, Arity: 3}
+	expireCommand := &core.YedisCommand{Name: "expire", CommandProc: string.ExpireCommand, Arity: 3}
+	expireatCommand := &core.YedisCommand{Name: "expireat", CommandProc: string.ExpireatCommand, Arity: 3}
 
-	pttlCommand := &core.YedisCommand{Name: "pttl", CommandProc: sds.PttlCommand, Arity: 2}
-	ttlCommand := &core.YedisCommand{Name: "ttl", CommandProc: sds.TtlCommand, Arity: 2}
+	pttlCommand := &core.YedisCommand{Name: "pttl", CommandProc: string.PttlCommand, Arity: 2}
+	ttlCommand := &core.YedisCommand{Name: "ttl", CommandProc: string.TtlCommand, Arity: 2}
 
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: command.InfoCommand, Arity: 1}
 	selectCommand := &core.YedisCommand{Name: "select", CommandProc: db.SelectCommand, Arity: 2}
@@ -268,7 +268,7 @@ func initDb() {
 		//键值对容量暂写死为200
 		yedis.ServerDb[i] = new(core.YedisDb)
 		yedis.ServerDb[i].ID = int8(i)
-		yedis.ServerDb[i].Data = make(core.Dict, defaultDbDictCapacity)
+		yedis.ServerDb[i].Dict = make(core.Dict, defaultDbDictCapacity)
 		yedis.ServerDb[i].Expires = make(core.ExpireDict, defaultDbDictCapacity)
 		yedis.ServerDb[i].AvgTTL = 0
 

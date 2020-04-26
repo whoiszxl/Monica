@@ -9,16 +9,22 @@ const (
 	OBJ_ENCODING_ZIPLIST    = 5  /* Encoded as ziplist */
 	OBJ_ENCODING_INTSET     = 6  /* Encoded as intset */
 	OBJ_ENCODING_SKIPLIST   = 7  /* Encoded as skiplist */
-	OBJ_ENCODING_EMBSTR     = 8  /* Embedded sds string encoding */
+	OBJ_ENCODING_EMBSTR     = 8  /* Embedded string string encoding */
 	OBJ_ENCODING_QUICKLIST  = 9  /* Encoded as linked list of ziplists */
 	OBJ_ENCODING_STREAM     = 10 /* Encoded as a radix tree of listpacks */
 
-	OBJ_STRING = 0 /* 字符串对象*/
-	OBJ_LIST   = 1 /* 列表对象 */
-	OBJ_SET    = 2 /* 集合对象 */
-	OBJ_ZSET   = 3 /* 有序集合对象 */
-	OBJ_HASH   = 4 /* 哈希表对象 */
-	OBJ_MODULE = 5 /* 模块对象 */
+
+	/* Object types */
+	REDIS_STRING       = 0 /* 字符串对象*/
+	REDIS_LIST         = 1 /* 列表对象 */
+	REDIS_SET          = 2 /* 集合对象 */
+	REDIS_ZSET         = 3 /* 有序集合对象 */
+	REDIS_HASH         = 4 /* 哈希表对象 */
+	REDIS_HASH_ZIPMAP  = 9
+	REDIS_LIST_ZIPLIST = 10
+	REDIS_SET_INTSET   = 11
+	REDIS_ZSET_ZIPLIST = 12
+	REDIS_HASH_ZIPLIST = 13
 
 	ENABLE = 1
 	DISABLE = 0

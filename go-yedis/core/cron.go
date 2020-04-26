@@ -227,7 +227,7 @@ func activeExpireCycle(server *YedisServer, expireType int) {
 func activeExpireCycleTryExpire(db *YedisDb, key *YedisObject, expiredTime int, now int) int {
 	//已经过期
 	if now > expiredTime {
-		ret := db.Data[key]
+		ret := db.Dict[key]
 		if ret == nil {
 			return 0
 		}

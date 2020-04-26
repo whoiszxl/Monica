@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/command"
@@ -11,7 +11,7 @@ import (
 func PexpireatCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	//db键空间中有key的话就拿到key对象
-	robjKey := command.GetKeyObj(c.Db.Data, c.Argv[1])
+	robjKey := command.GetKeyObj(c.Db.Dict, c.Argv[1])
 
 	if robjKey != nil {
 		//不为空，则在过期db空间里关联键和过期时间

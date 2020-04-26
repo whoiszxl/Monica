@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/command"
@@ -9,7 +9,7 @@ import (
 
 //getrange命令
 func GetrangeCommand(c *core.YedisClients, s *core.YedisServer) {
-	robj := command.LookupKey(c.Db.Data, c.Argv[1])
+	robj := command.LookupKey(c.Db.Dict, c.Argv[1])
 
 	//判断参数有效性
 	start, ok := c.Argv[2].Ptr.(string)

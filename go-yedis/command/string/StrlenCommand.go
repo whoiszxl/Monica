@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/command"
@@ -10,7 +10,7 @@ import (
 //strlen命令
 func StrlenCommand(c *core.YedisClients, s *core.YedisServer) {
 
-	robj := command.LookupKey(c.Db.Data, c.Argv[1])
+	robj := command.LookupKey(c.Db.Dict, c.Argv[1])
 	if robj != nil {
 		if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
 			core.AddReplyStatus(c, strconv.FormatUint(sdshdr.Len, 10))

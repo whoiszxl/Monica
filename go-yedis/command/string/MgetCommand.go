@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/command"
@@ -14,7 +14,7 @@ func MgetCommand(c *core.YedisClients, s *core.YedisServer) {
 	//循环获取
 	var result = make([]string, c.Argc - 1)
 	for i := 1; i < c.Argc; i++ {
-		robj := command.LookupKey(c.Db.Data, c.Argv[i])
+		robj := command.LookupKey(c.Db.Dict, c.Argv[i])
 		result[i-1] = robj.Ptr.(ds.Sdshdr).Buf
 	}
 	core.AddReplyStatus(c, "[" + strings.Join(result, ",") + "]")

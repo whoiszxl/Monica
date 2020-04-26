@@ -49,7 +49,7 @@ func InfoCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	//keySpace 有效key，失效key和平均ttl
 	dbCode := c.Db.ID
-	keys := len(c.Db.Data)
+	keys := len(c.Db.Dict)
 	expiredKeys := len(c.Db.Expires)
 	avgTTL := c.Db.AvgTTL
 

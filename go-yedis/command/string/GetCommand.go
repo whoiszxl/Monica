@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/command"
@@ -9,7 +9,7 @@ import (
 //get命令
 func GetCommand(c *core.YedisClients, s *core.YedisServer) {
 
-	robj := command.LookupKey(c.Db.Data, c.Argv[1])
+	robj := command.LookupKey(c.Db.Dict, c.Argv[1])
 	if robj != nil {
 		if sdshdr, ok2 := robj.Ptr.(ds.Sdshdr); ok2 {
 			core.AddReplyStatus(c, sdshdr.Buf)

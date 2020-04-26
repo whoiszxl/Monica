@@ -1,4 +1,4 @@
-package sds
+package string
 
 import (
 	"Monica/go-yedis/command"
@@ -25,7 +25,7 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 		if stringValue, ok3 := robjValue.Ptr.(string); ok3 {
 
 			//查询是否存在
-			isExist := command.GetKeyObj(c.Db.Data, robjKey)
+			isExist := command.GetKeyObj(c.Db.Dict, robjKey)
 			if isExist != nil {
 				robjKey = isExist
 			}else {
@@ -36,14 +36,14 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 			//判断是否能转int，能转则设置encoding的方式
 			if _, err := strconv.Atoi(stringValue); err == nil {
 				robjValue := core.CreateSdsObject(core.OBJ_ENCODING_INT, stringValue)
-				c.Db.Data[robjKey] = robjValue
+				c.Db.Dict[robjKey] = robjValue
 			}else {
 				//创建一个sdshdr保存到字典中
 				robjValue := core.CreateSdsObject(core.OBJ_ENCODING_RAW, stringValue)
 				//注意事项：字符串的编码方式在Redis中有三种，首先INT方式已经在上个if判断中添加了，INT编码方式不需要sds对象包装，可以提升效率，它底层实际是个long
 				//其次是RAW和EMBSTR, 都是字符串。小于39字节用EMBSTR,大于用RAW，Redis3.2版本则以44字节区分
 				//此处省略判断，直接用RAW
-				c.Db.Data[robjKey] = robjValue
+				c.Db.Dict[robjKey] = robjValue
 			}
 		}
 	}

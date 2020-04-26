@@ -59,7 +59,7 @@ func (c *YedisClients) ProcessCommandInfo() error {
 		c.Argv = make([]*YedisObject, c.Argc)
 		for count, resp := range response {
 			//判断客户端传来的Value是什么类型 (int string) ....不判断了，string放进去就完事了
-			c.Argv[count] = CreateObject(OBJ_STRING, OBJ_ENCODING_RAW, string(resp.Value))
+			c.Argv[count] = CreateObject(REDIS_STRING, OBJ_ENCODING_RAW, string(resp.Value))
 		}
 		return nil
 	}

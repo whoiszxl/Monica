@@ -29,7 +29,7 @@ func (c *YedisClients) ProcessInputBuffer() error {
 		c.Argc = len(resp)
 		c.Argv = make([]*YedisObject, c.Argc)
 		for k, s := range resp {
-			c.Argv[k] = CreateSdsObject(OBJ_ENCODING_RAW, string(s.Value))
+			c.Argv[k] = CreateObject(OBJ_STRING, OBJ_ENCODING_RAW, string(s.Value))
 		}
 		return nil
 	}

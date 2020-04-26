@@ -1,7 +1,6 @@
 package core
 
 import (
-	"Monica/go-yedis/ds"
 	"log"
 	"os"
 )
@@ -95,13 +94,13 @@ type YedisServer struct {
 //AOF文件加载到内存中，通过ProcessCommand方法将所有的命令执行
 //执行命令的时候传播范围尾NONE,避免其命令循环持久化，写入慢日志等操作
 func (s *YedisServer) ProcessCommand(c *YedisClients) {
-	name, ok := c.Argv[0].Ptr.(ds.Sdshdr)
+	name, ok := c.Argv[0].Ptr.(string)
 	if !ok {
 		log.Println("aof process command error.")
 		os.Exit(1)
 	}
 
-	cmd := LookupCommand(name.Buf, s)
+	cmd := LookupCommand(name, s)
 	if cmd != nil {
 		c.Cmd = cmd
 		call(c, s, REDIS_CALL_NONE)

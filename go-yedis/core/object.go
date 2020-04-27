@@ -1,6 +1,9 @@
 package core
 
-import "Monica/go-yedis/ds"
+import (
+	"Monica/go-yedis/ds"
+	"strconv"
+)
 
 // ZedisObject 是对特定类型的数据的包装
 type YedisObject struct {
@@ -21,8 +24,25 @@ func CreateObject(objectType int, encodingType int, ptr interface{}) (o *YedisOb
 	return
 }
 
-//设置对象的编码
+//设置对象的编码方式来节省空间
+//分配OBJ_ENCODING_INT，OBJ_ENCODING_RAW，OBJ_ENCODING_EMBSTR这三种编码方式
+//此处简写，原版代码：https://github.com/antirez/redis/blob/30724986659c6845e9e48b601e36aa4f4bca3d30/src/object.c#L439
 func TryObjectEncoding(lobj *YedisObject) *YedisObject {
+	str := lobj.Ptr.(string)
+	//判断str能否转int
+	_, err := strconv.Atoi(str)
+	if err == nil {
+		lobj.Encoding = OBJ_ENCODING_INT
+		return lobj
+	}
+
+	if len(str) <= 20 {
+		lobj.Encoding = OBJ_ENCODING_EMBSTR
+		return lobj
+	}else {
+		lobj.Encoding = OBJ_ENCODING_RAW
+		return lobj
+	}
 
 }
 

@@ -64,8 +64,8 @@ func dictDataDelete(dict Dict, key *YedisObject) int {
 
 //将key添加到数据库中
 //Redis源码：https://github.com/antirez/redis/blob/3.0/src/db.c#L93
-func DbAdd(db *YedisDb, key string, value *YedisObject) {
-
+func DbAdd(db *YedisDb, key *YedisObject, value *YedisObject) {
+	db.Dict[key] = value
 }
 
 func SelectDb(c *YedisClients, s *YedisServer, id int) int {

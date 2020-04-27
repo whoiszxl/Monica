@@ -2,6 +2,7 @@ package main
 
 import (
 	"Monica/go-yedis/command/db"
+	"Monica/go-yedis/command/list"
 	"Monica/go-yedis/command/sds"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
@@ -231,6 +232,12 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: sds.InfoCommand, Arity: 1}
 	selectCommand := &core.YedisCommand{Name: "select", CommandProc: db.SelectCommand, Arity: 2}
 
+	lpushCommand := &core.YedisCommand{Name: "lpush", CommandProc: list.LpushCommand, Arity: 0}
+	rpushCommand := &core.YedisCommand{Name: "rpush", CommandProc: list.RpushCommand, Arity: 0}
+	llenCommand := &core.YedisCommand{Name: "llen", CommandProc: list.LlenCommand, Arity: 2}
+	lindexCommand := &core.YedisCommand{Name: "lindex", CommandProc: list.LindexCommand, Arity: 3}
+
+
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
 		"set":      setCommand,
@@ -254,6 +261,11 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 		"info": infoCommand,
 		"select": selectCommand,
+
+		"lpush": lpushCommand,
+		"rpush": rpushCommand,
+		"llen": llenCommand,
+		"lindex": lindexCommand,
 	}
 
 }

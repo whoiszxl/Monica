@@ -41,7 +41,7 @@ func PushGenericCommand(c *core.YedisClients, s *core.YedisServer, where int) {
 		pushed++
 	}
 
-	core.AddReplyStatus(c, "LEN" + strconv.Itoa(waiting + lobj.Ptr.(*core.LinkedList).Len))
+	core.AddReplyStatus(c, "(length) " + strconv.Itoa(waiting + lobj.Ptr.(*core.LinkedList).Len))
 
 	if pushed > 0 {
 		//SignalModifiedKey(c)

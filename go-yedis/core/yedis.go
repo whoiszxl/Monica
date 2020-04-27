@@ -85,6 +85,11 @@ func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 	//查找Yedis是否支持此命令
 	cmd := LookupCommand(commandName, s)
 
+	if cmd == nil {
+		AddReplyError(c, fmt.Sprintf("(error) unsupported '%s' command", commandName))
+		return
+	}
+
 	//校验参数个数是否正确
 	if (cmd.Arity > 0 && cmd.Arity != c.Argc) || (c.Argc < -cmd.Arity) {
 		AddReplyError(c, fmt.Sprintf("(error) wrong number of arguments for '%s' command", cmd.Name))

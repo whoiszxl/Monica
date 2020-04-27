@@ -1,7 +1,6 @@
-package string
+package sds
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
 	"strconv"
@@ -18,7 +17,7 @@ func PttlCommand(c *core.YedisClients, s *core.YedisServer) {
 //获取毫秒级别的失效时间
 func GetPttlTime(c *core.YedisClients, s *core.YedisServer) int {
 	//db键空间中有key的话就拿到key对象
-	robjKey := command.GetKeyObj(c.Db.Dict, c.Argv[1])
+	robjKey := core.GetKeyObj(c.Db.Dict, c.Argv[1])
 	if robjKey == nil {
 		return -2
 	}

@@ -1,7 +1,6 @@
-package string
+package sds
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
 	"strconv"
 )
@@ -11,7 +10,7 @@ import (
 func ExpireatCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	//db键空间中有key的话就拿到key对象
-	robjKey := command.GetKeyObj(c.Db.Dict, c.Argv[1])
+	robjKey := core.GetKeyObj(c.Db.Dict, c.Argv[1])
 
 	if robjKey != nil {
 		//不为空，则在过期db空间里关联键和过期时间

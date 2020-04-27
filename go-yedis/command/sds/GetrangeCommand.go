@@ -1,15 +1,13 @@
-package string
+package sds
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
-	"Monica/go-yedis/ds"
 	"strconv"
 )
 
 //getrange命令
 func GetrangeCommand(c *core.YedisClients, s *core.YedisServer) {
-	robj := command.LookupKey(c.Db.Dict, c.Argv[1])
+	robj := core.LookupKey(c.Db.Dict, c.Argv[1])
 
 	//判断参数有效性
 	start, ok := c.Argv[2].Ptr.(string)
@@ -33,7 +31,7 @@ func GetrangeCommand(c *core.YedisClients, s *core.YedisServer) {
 	}
 
 	if robj != nil {
-		if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
+		if sdshdr, ok := robj.Ptr.(core.Sdshdr); ok {
 			cutStr := sdshdr.Buf[startNum:endNum+1]
 			core.AddReplyStatus(c, cutStr)
 		}else {

@@ -1,19 +1,17 @@
-package string
+package sds
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
-	"Monica/go-yedis/ds"
 	"strconv"
 )
 
-//incr命令，累加1
-func IncrCommand(c *core.YedisClients, s *core.YedisServer) {
+//decr命令，累减1
+func DecrCommand(c *core.YedisClients, s *core.YedisServer) {
 	//搜索key是否存在数据库中
-	robj := command.LookupKey(c.Db.Dict, c.Argv[1])
+	robj := core.LookupKey(c.Db.Dict, c.Argv[1])
 	//判断有效性
 	if c.Argc != 2 {
-		core.AddReplyStatus(c, "(error) ERR wrong number of arguments for 'incr' command")
+		core.AddReplyStatus(c, "(error) ERR wrong number of arguments for 'decr' command")
 		return
 	}
 	if robj.Encoding != core.OBJ_ENCODING_INT {
@@ -26,10 +24,10 @@ func IncrCommand(c *core.YedisClients, s *core.YedisServer) {
 	}
 
 	//先拿出sds来
-	if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
+	if sdshdr, ok := robj.Ptr.(core.Sdshdr); ok {
 		//将sdshdr.Buf转数字
 		intNumber, _ := strconv.Atoi(sdshdr.Buf)
-		intNumber = intNumber + 1
+		intNumber = intNumber - 1
 		sdshdr.Buf = strconv.Itoa(intNumber)
 		robj.Ptr = sdshdr
 		s.Dirty++

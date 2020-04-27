@@ -1,19 +1,17 @@
-package string
+package sds
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
-	"Monica/go-yedis/ds"
 	"strconv"
 )
 
-//decrby命令，累减n
-func DecrbyCommand(c *core.YedisClients, s *core.YedisServer) {
+//incrby命令，累加n
+func IncrbyCommand(c *core.YedisClients, s *core.YedisServer) {
 	//搜索key是否存在数据库中
-	robj := command.LookupKey(c.Db.Dict, c.Argv[1])
+	robj := core.LookupKey(c.Db.Dict, c.Argv[1])
 	//判断有效性
 	if c.Argc != 3 {
-		core.AddReplyStatus(c, "(error) ERR wrong number of arguments for 'decrby' command")
+		core.AddReplyStatus(c, "(error) ERR wrong number of arguments for 'incrby' command")
 		return
 	}
 	if robj.Encoding != core.OBJ_ENCODING_INT {
@@ -26,17 +24,16 @@ func DecrbyCommand(c *core.YedisClients, s *core.YedisServer) {
 	}
 
 	//先拿出sds来
-	if sdshdr, ok := robj.Ptr.(ds.Sdshdr); ok {
-		//将sdshdr.Buf转数字
+	if sdshdr, ok := robj.Ptr.(core.Sdshdr); ok {
+		//将sdshdr.Buf转数字core.Sdshdr
 		intNumber, _ := strconv.Atoi(sdshdr.Buf)
 		//拿到需要累减的参数累减并返回
 		if addNumber, err := strconv.Atoi(c.Argv[2].Ptr.(string)); err == nil {
-			intNumber = intNumber - addNumber
+			intNumber = intNumber + addNumber
 			sdshdr.Buf = strconv.Itoa(intNumber)
 			robj.Ptr = sdshdr
 			s.Dirty++
 			core.AddReplyStatus(c, sdshdr.Buf)
 		}
 	}
-
 }

@@ -9,7 +9,7 @@ const (
 	OBJ_ENCODING_ZIPLIST    = 5  /* Encoded as ziplist */
 	OBJ_ENCODING_INTSET     = 6  /* Encoded as intset */
 	OBJ_ENCODING_SKIPLIST   = 7  /* Encoded as skiplist */
-	OBJ_ENCODING_EMBSTR     = 8  /* Embedded string string encoding */
+	OBJ_ENCODING_EMBSTR     = 8  /* Embedded sds sds encoding */
 	OBJ_ENCODING_QUICKLIST  = 9  /* Encoded as linked list of ziplists */
 	OBJ_ENCODING_STREAM     = 10 /* Encoded as a radix tree of listpacks */
 

@@ -1,7 +1,6 @@
-package string
+package sds
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
 	"strconv"
 )
@@ -25,7 +24,7 @@ func SetCommand(c *core.YedisClients, s *core.YedisServer) {
 		if stringValue, ok3 := robjValue.Ptr.(string); ok3 {
 
 			//查询是否存在
-			isExist := command.GetKeyObj(c.Db.Dict, robjKey)
+			isExist := core.GetKeyObj(c.Db.Dict, robjKey)
 			if isExist != nil {
 				robjKey = isExist
 			}else {

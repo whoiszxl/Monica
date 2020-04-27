@@ -1,4 +1,4 @@
-package ds
+package core
 
 // sds简单动态字符串数据结构
 // Redis在3.2版本后sds结构有五种，分别为sdshdr5、sdshdr8、sdshdr16、sdshdr32和sdshdr64

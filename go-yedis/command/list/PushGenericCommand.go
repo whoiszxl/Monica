@@ -1,9 +1,7 @@
 package list
 
 import (
-	"Monica/go-yedis/command"
 	"Monica/go-yedis/core"
-	"Monica/go-yedis/ds"
 	"strconv"
 )
 
@@ -14,7 +12,7 @@ import (
 func PushGenericCommand(c *core.YedisClients, s *core.YedisServer, where int) {
 	var waiting, pushed = 0, 0
 	//搜索key是否存在数据库中
-	lobj := command.LookupKey(c.Db.Dict, c.Argv[1])
+	lobj := core.LookupKey(c.Db.Dict, c.Argv[1])
 
 	if lobj != nil && lobj.ObjectType != core.REDIS_LIST {
 		//TODO 错误回复应该在Yedis初始化的时候创建一个共享对象，然后将提示语统一管理,代码地址：https://github.com/huangz1990/redis-3.0-annotated/blob/8e60a75884e75503fb8be1a322406f21fb455f67/src/redis.c#L1613
@@ -43,7 +41,7 @@ func PushGenericCommand(c *core.YedisClients, s *core.YedisServer, where int) {
 		pushed++
 	}
 
-	core.AddReplyStatus(c, "LEN" + strconv.Itoa(waiting + lobj.Ptr.(*ds.LinkedList).Len))
+	core.AddReplyStatus(c, "LEN" + strconv.Itoa(waiting + lobj.Ptr.(*core.LinkedList).Len))
 
 	if pushed > 0 {
 		//SignalModifiedKey(c)
@@ -69,9 +67,9 @@ func RpushCommand(c *core.YedisClients, s *core.YedisServer) {
 func listTypePush(c *core.YedisClients, subject *core.YedisObject, value *core.YedisObject, where int) {
 	if subject.Encoding == core.OBJ_ENCODING_LINKEDLIST {
 		if where == core.LIST_HEAD {
-			ds.ListAddNodeHead(subject.Ptr.(*ds.LinkedList), value.Ptr)
+			core.ListAddNodeHead(subject.Ptr.(*core.LinkedList), value.Ptr)
 		}else {
-			ds.ListAddNodeTail(subject.Ptr.(*ds.LinkedList), value.Ptr)
+			core.ListAddNodeTail(subject.Ptr.(*core.LinkedList), value.Ptr)
 		}
 	}else {
 		core.AddReplyStatus(c, "Unknown list encoding")
@@ -80,15 +78,15 @@ func listTypePush(c *core.YedisClients, subject *core.YedisObject, value *core.Y
 
 //如果客户端因为等待key被push阻塞，那么将key放进 server.ready_keys 列表里面
 func SignalListAsReady(c *core.YedisClients, s *core.YedisServer, key *core.YedisObject) {
-	rl := new(ds.ReadyList)
+	rl := new(core.ReadyList)
 
 	//判断有没有客户端被这个键阻塞
-	if command.LookupKey(c.Db.BlockingKeys, key) == nil {
+	if core.LookupKey(c.Db.BlockingKeys, key) == nil {
 		return
 	}
 
 	//被添加到了ready_keys中也直接返回
-	if command.LookupKey(c.Db.ReadyKeys, key) != nil {
+	if core.LookupKey(c.Db.ReadyKeys, key) != nil {
 		return
 	}
 
@@ -97,7 +95,7 @@ func SignalListAsReady(c *core.YedisClients, s *core.YedisServer, key *core.Yedi
 	rl.Db = c.Db
 
 	//TODO 减少key的引用并添加到server.ReadyKeys中
-	ds.ListAddNodeTail(s.ReadyKeys, rl)
+	core.ListAddNodeTail(s.ReadyKeys, rl)
 
 	//将key添加到c.Db.ReadyKeys中，防止重复添加
 	c.Db.ReadyKeys[key] = nil

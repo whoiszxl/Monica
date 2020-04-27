@@ -1,7 +1,6 @@
 package core
 
 import (
-	"Monica/go-yedis/ds"
 	"log"
 	"os"
 )
@@ -91,7 +90,7 @@ type YedisServer struct {
 	SystemUsedPercent   float64 //内存使用百分比
 	SystemCpuPercent    float64 //CPU使用百分比
 
-	ReadyKeys           *ds.LinkedList //阻塞key列表
+	ReadyKeys           *LinkedList //阻塞key列表
 }
 
 //AOF文件加载到内存中，通过ProcessCommand方法将所有的命令执行

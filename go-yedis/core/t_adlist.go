@@ -1,6 +1,5 @@
-package ds
+package core
 
-import "Monica/go-yedis/core"
 
 // 从表头向表尾进行迭代
 const AL_START_HEAD = 0
@@ -251,6 +250,6 @@ func ListIndex(list *LinkedList, index int) *ListNode {
 
 // 处于阻塞状态的list
 type ReadyList struct {
-	Db *core.YedisDb
-	Key *core.YedisObject
+	Db *YedisDb
+	Key *YedisObject
 }

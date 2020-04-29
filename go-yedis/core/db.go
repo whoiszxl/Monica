@@ -14,7 +14,11 @@ type YedisDb struct {
 	ReadyKeys    Dict       //等待解除阻塞的键
 }
 
-//使用Go原生数据结构map作为redis中dict结构体
+//使用Go原生数据结构map作为redis中dict结构体，实际Redis使用的是自己构建的一个Dict结构
+//C语言因为没有自带的字典，使用的是数组，通过将输入的键通过hash计算（dictGenHashFunction）得到一串大数字，再将大数字通过
+//和数组容量进行取余得出，因为这样操作会造成hash冲突，所以储存的值对象还会有一个next成员指针变量，形成一个个单向链表。
+//查找的时候则先对键进行hash取余，取出单向链表后再一个个与key进行比对
+//Redis源码：https://github.com/antirez/redis/blob/4d4c8c8a40/src/dict.h#L76
 type Dict map[*YedisObject]*YedisObject
 
 //保存过期键值对的字典  map[键名]过期时间的时间戳

@@ -237,6 +237,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	llenCommand := &core.YedisCommand{Name: "llen", CommandProc: list.LlenCommand, Arity: 2}
 	lindexCommand := &core.YedisCommand{Name: "lindex", CommandProc: list.LindexCommand, Arity: 3}
 	lsetCommand := &core.YedisCommand{Name: "lset", CommandProc: list.LsetCommand, Arity: 4}
+	linsertCommand := &core.YedisCommand{Name: "linsert", CommandProc: list.LinsertCommand, Arity: 5}
+
 
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
@@ -267,6 +269,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"llen": llenCommand,
 		"lindex": lindexCommand,
 		"lset": lsetCommand,
+		"linsert": linsertCommand,
 	}
 
 }

@@ -231,6 +231,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: sds.InfoCommand, Arity: 1}
 	selectCommand := &core.YedisCommand{Name: "select", CommandProc: db.SelectCommand, Arity: 2}
+	keysCommand := &core.YedisCommand{Name: "keys", CommandProc: db.KeysCommand, Arity: 2}cd
 
 	lpushCommand := &core.YedisCommand{Name: "lpush", CommandProc: list.LpushCommand, Arity: 0}
 	rpushCommand := &core.YedisCommand{Name: "rpush", CommandProc: list.RpushCommand, Arity: 0}
@@ -241,7 +242,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	lrangeCommand := &core.YedisCommand{Name: "lrange", CommandProc: list.LrangeCommand, Arity: 4}
 	lpopCommand := &core.YedisCommand{Name: "lpop", CommandProc: list.LpopCommand, Arity: 2}
 	rpopCommand := &core.YedisCommand{Name: "rpop", CommandProc: list.RpopCommand, Arity: 2}
-	keysCommand := &core.YedisCommand{Name: "keys", CommandProc: db.KeysCommand, Arity: 2}
+	lremCommand := &core.YedisCommand{Name: "lrem", CommandProc: list.LremCommand, Arity: 4}
 
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
@@ -277,6 +278,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"lrange": lrangeCommand,
 		"lpop": lpopCommand,
 		"rpop": rpopCommand,
+		"lrem": lremCommand,
 	}
 
 }

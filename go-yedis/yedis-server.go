@@ -231,7 +231,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 	infoCommand := &core.YedisCommand{Name: "info", CommandProc: sds.InfoCommand, Arity: 1}
 	selectCommand := &core.YedisCommand{Name: "select", CommandProc: db.SelectCommand, Arity: 2}
-	keysCommand := &core.YedisCommand{Name: "keys", CommandProc: db.KeysCommand, Arity: 2}cd
+	keysCommand := &core.YedisCommand{Name: "keys", CommandProc: db.KeysCommand, Arity: 2}
 
 	lpushCommand := &core.YedisCommand{Name: "lpush", CommandProc: list.LpushCommand, Arity: 0}
 	rpushCommand := &core.YedisCommand{Name: "rpush", CommandProc: list.RpushCommand, Arity: 0}

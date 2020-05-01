@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"strings"
 )
 
 const (
@@ -59,7 +60,13 @@ func (c *YedisClients) ProcessCommandInfo() error {
 		c.Argv = make([]*YedisObject, c.Argc)
 		for count, resp := range response {
 			//判断客户端传来的Value是什么类型 (int sds) ....不判断了，string放进去就完事了
-			c.Argv[count] = CreateObject(REDIS_STRING, OBJ_ENCODING_RAW, string(resp.Value))
+
+			param := string(resp.Value)
+			//首个命令全部转小写，达到命令大小写兼容
+			if count == 0 {
+				param = strings.ToLower(string(resp.Value))
+			}
+			c.Argv[count] = CreateObject(REDIS_STRING, OBJ_ENCODING_RAW, param)
 		}
 		return nil
 	}

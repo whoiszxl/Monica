@@ -11,9 +11,9 @@ import (
 func PexpireCommand(c *core.YedisClients, s *core.YedisServer) {
 
 	// 将参数二转时间戳再调用pexpireatCommand
-	if millis, err := strconv.Atoi(c.Argv[2].Ptr.(string)); err == nil {
+	if millis, err := strconv.Atoi(c.Argv[2].Ptr.(core.Sdshdr).Buf); err == nil {
 		timestamp := utils.CurrentTimeMillis() + millis
-		c.Argv[2].Ptr = strconv.Itoa(timestamp)
+		c.Argv[2] = core.CreateSdsObject(core.OBJ_ENCODING_INT, strconv.Itoa(timestamp))
 	}
 	PexpireatCommand(c, s)
 }

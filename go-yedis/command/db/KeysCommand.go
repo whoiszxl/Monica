@@ -6,7 +6,7 @@ import (
 
 //获取所有的key
 func KeysCommand(c *core.YedisClients, s *core.YedisServer) {
-	pattern := c.Argv[1].Ptr.(string)
+	pattern := c.Argv[1].Ptr.(core.Sdshdr).Buf
 
 	result := ""
 	if pattern == "*" {

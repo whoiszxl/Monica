@@ -1,6 +1,6 @@
 package core
 
-//简化结构，使用go map + DictEntry, 将map作为一个数组来使用，key为用户输入key经过hash计算并与数组大小（map没有大小，模拟一个固定大小值来模仿Redis）取余，
+//简化结构，使用go map + DictEntry, 将map作为一个数组来使用，key为用户输入key经过hash计算并与数组大小取余，
 //YedisObject中Ptr直接指向一个DictEntry，然后DictEntry作为单链表头继续保存有hash碰撞的值
 type DictMap map[int]*YedisObject
 
@@ -29,4 +29,9 @@ type DictHash struct {
 	Ht [2]DictHt //hash表，键值对存储的地方
 	ReHashIdx int //rehash标识，默认-1，不为-1代表正在rehash，存储值标识hash表ht[0]操作进行到了哪个索引值
 	Iterators int //当前运行的迭代器数
+}
+
+//
+func DictReplace(ht *DictMap, key *YedisObject, value *YedisObject) int {
+	return 0
 }

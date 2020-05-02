@@ -42,7 +42,7 @@ func catAppendOnlyGenericCommand(argc int,argv []*YedisObject) string {
 	//将argv中的命令和参数转换为输入时的字符串
 	var cmd string
 	for _, v := range argv {
-		cmd += v.Ptr.(string) + " "
+		cmd += v.Ptr.(Sdshdr).Buf + " "
 	}
 	cmd = strings.TrimRight(cmd, ",")
 	encodeCmd, e := encrypt.EncodeCmd(cmd)

@@ -27,7 +27,7 @@ func CreateObject(objectType int, encodingType int, ptr interface{}) (o *YedisOb
 //分配OBJ_ENCODING_INT，OBJ_ENCODING_RAW，OBJ_ENCODING_EMBSTR这三种编码方式
 //此处简写，原版代码：https://github.com/antirez/redis/blob/30724986659c6845e9e48b601e36aa4f4bca3d30/src/object.c#L439
 func TryObjectEncoding(lobj *YedisObject) *YedisObject {
-	str := lobj.Ptr.(string)
+	str := lobj.Ptr.(Sdshdr).Buf
 	//判断str能否转int
 	_, err := strconv.Atoi(str)
 	if err == nil {
@@ -45,7 +45,16 @@ func TryObjectEncoding(lobj *YedisObject) *YedisObject {
 
 }
 
+//创建一个hash表对象
+func CreateHashObject() *YedisObject {
 
+	maps := make(DictMap, DEFAULT_HASH_LEN)
+
+	o := CreateObject(REDIS_HASH, OBJ_ENCODING_HT, maps)
+	return o
+}
+
+//创建一个sds简单动态字符串对象
 func CreateSdsObject(encodingType int, str string) *YedisObject {
 	sdshdr := Sdsnew(str)
 	return CreateObject(REDIS_STRING, encodingType, sdshdr)

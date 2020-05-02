@@ -29,7 +29,8 @@ func (c *YedisClients) ProcessInputBuffer() error {
 		c.Argc = len(resp)
 		c.Argv = make([]*YedisObject, c.Argc)
 		for k, s := range resp {
-			c.Argv[k] = CreateObject(REDIS_STRING, OBJ_ENCODING_RAW, string(s.Value))
+			//TODO 写的时候总感觉多此一举，有string导入了还要再创建一个sds，仅仅是模仿Redis的结构，后续考虑按照Go的数据结构来改变
+			c.Argv[k] = CreateSdsObject(OBJ_ENCODING_RAW, string(s.Value))
 		}
 		return nil
 	}

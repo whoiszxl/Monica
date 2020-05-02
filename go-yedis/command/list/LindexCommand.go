@@ -9,7 +9,7 @@ func LindexCommand(c *core.YedisClients, s *core.YedisServer) {
 	//查找list是否存在
 	robj := core.LookupKey(c.Db.Dict, c.Argv[1])
 	if robj != nil {
-		index, err := strconv.Atoi(c.Argv[2].Ptr.(string))
+		index, err := strconv.Atoi(c.Argv[2].Ptr.(core.Sdshdr).Buf)
 		if err != nil {
 			core.AddReplyError(c, "(nil)")
 			return
@@ -20,7 +20,7 @@ func LindexCommand(c *core.YedisClients, s *core.YedisServer) {
 			core.AddReplyError(c, "(nil)")
 			return
 		}
-		core.AddReplyStatus(c, listNode.Value.(string))
+		core.AddReplyStatus(c, listNode.Value.Ptr.(core.Sdshdr).Buf)
 	} else {
 		core.AddReplyStatus(c, "(integer) 0")
 	}

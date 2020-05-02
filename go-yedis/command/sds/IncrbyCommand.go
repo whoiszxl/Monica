@@ -28,7 +28,7 @@ func IncrbyCommand(c *core.YedisClients, s *core.YedisServer) {
 		//将sdshdr.Buf转数字core.Sdshdr
 		intNumber, _ := strconv.Atoi(sdshdr.Buf)
 		//拿到需要累减的参数累减并返回
-		if addNumber, err := strconv.Atoi(c.Argv[2].Ptr.(string)); err == nil {
+		if addNumber, err := strconv.Atoi(c.Argv[2].Ptr.(core.Sdshdr).Buf); err == nil {
 			intNumber = intNumber + addNumber
 			sdshdr.Buf = strconv.Itoa(intNumber)
 			robj.Ptr = sdshdr

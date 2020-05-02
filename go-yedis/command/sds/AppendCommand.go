@@ -12,8 +12,8 @@ func AppendCommand(c *core.YedisClients, s *core.YedisServer) {
 	if robj != nil {
 		if sdshdr, ok := robj.Ptr.(core.Sdshdr); ok {
 			//获取到字符串sdshdr对象,将Buf追加参数Argv[2]
-			sdshdr.Buf = sdshdr.Buf + c.Argv[2].Ptr.(string)
-			sdshdr.Len = sdshdr.Len + uint64(len(c.Argv[2].Ptr.(string)))
+			sdshdr.Buf = sdshdr.Buf + c.Argv[2].Ptr.(core.Sdshdr).Buf
+			sdshdr.Len = sdshdr.Len + uint64(len(c.Argv[2].Ptr.(core.Sdshdr).Buf))
 			robj.Ptr = sdshdr //TODO 直接覆盖原有Sds,通过指针修改不知道为什么没法成功
 			s.Dirty++
 			core.AddReplyStatus(c, strconv.FormatUint(sdshdr.Len, 10))

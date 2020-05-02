@@ -17,7 +17,7 @@ type ListNode struct {
 	Next *ListNode
 
 	//节点值
-	Value interface{}
+	Value *YedisObject
 }
 
 //双向列表迭代器
@@ -56,7 +56,7 @@ func ListCreate() *LinkedList {
 }
 
 //将一个任意类型的对象添加到链表表头
-func ListAddNodeHead(list *LinkedList, value interface{}) *LinkedList {
+func ListAddNodeHead(list *LinkedList, value *YedisObject) *LinkedList {
 	//创建节点并将值传入节点
 	node := new(ListNode)
 	node.Value = value
@@ -80,7 +80,7 @@ func ListAddNodeHead(list *LinkedList, value interface{}) *LinkedList {
 }
 
 //将一个任意类型的对象添加到链表表尾
-func ListAddNodeTail(list *LinkedList, value interface{}) *LinkedList {
+func ListAddNodeTail(list *LinkedList, value *YedisObject) *LinkedList {
 	//创建节点并将值传入节点
 	node := new(ListNode)
 	node.Value = value
@@ -106,7 +106,7 @@ func ListAddNodeTail(list *LinkedList, value interface{}) *LinkedList {
 
 //将value对象插入到oldNode的前或后
 //after: 1->插入到之后 0->插入到之前
-func ListInsertNode(list *LinkedList, oldNode *ListNode, value interface{}, after int) *LinkedList {
+func ListInsertNode(list *LinkedList, oldNode *ListNode, value *YedisObject, after int) *LinkedList {
 	//创建节点并将值传入节点
 	node := new(ListNode)
 	node.Value = value
@@ -220,7 +220,7 @@ func ListSearchKey(list *LinkedList, key interface{}) *ListNode {
 		if node == nil {
 			break
 		}
-		if key == node.Value {
+		if key == node.Value.Ptr.(Sdshdr).Buf {
 			return node
 		}
 	}

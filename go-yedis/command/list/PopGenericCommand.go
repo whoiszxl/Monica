@@ -27,7 +27,7 @@ func PopGenericCommand(c *core.YedisClients, s *core.YedisServer, where int) {
 		delete(c.Db.Dict, keyObj)
 	}
 
-	core.AddReplyStatus(c, value.Value.(string))
+	core.AddReplyStatus(c, value.Value.Ptr.(core.Sdshdr).Buf)
 
 	s.Dirty++
 }

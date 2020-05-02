@@ -29,11 +29,7 @@ func PushGenericCommand(c *core.YedisClients, s *core.YedisServer, where int) {
 		if lobj == nil {
 			lobj = core.CreateLinkedListObject()
 			//添加到数据库中
-			//TODO 需要将传过来的stringkey转sdskey，很麻烦，要优化
-			if stringKey, ok1 := c.Argv[1].Ptr.(string); ok1 {
-				lobjKey := core.CreateSdsObject(core.OBJ_ENCODING_RAW, stringKey)
-				core.DbAdd(c.Db, lobjKey, lobj)
-			}
+			core.DbAdd(c.Db, c.Argv[1], lobj)
 		}
 
 		//将值push到列表
@@ -67,9 +63,9 @@ func RpushCommand(c *core.YedisClients, s *core.YedisServer) {
 func listTypePush(c *core.YedisClients, subject *core.YedisObject, value *core.YedisObject, where int) {
 	if subject.Encoding == core.OBJ_ENCODING_LINKEDLIST {
 		if where == core.LIST_HEAD {
-			core.ListAddNodeHead(subject.Ptr.(*core.LinkedList), value.Ptr)
+			core.ListAddNodeHead(subject.Ptr.(*core.LinkedList), value)
 		}else {
-			core.ListAddNodeTail(subject.Ptr.(*core.LinkedList), value.Ptr)
+			core.ListAddNodeTail(subject.Ptr.(*core.LinkedList), value)
 		}
 	}else {
 		core.AddReplyStatus(c, "Unknown list encoding")
@@ -95,7 +91,7 @@ func SignalListAsReady(c *core.YedisClients, s *core.YedisServer, key *core.Yedi
 	rl.Db = c.Db
 
 	//TODO 减少key的引用并添加到server.ReadyKeys中
-	core.ListAddNodeTail(s.ReadyKeys, rl)
+	core.ListAddNodeTail(s.ReadyKeys, core.CreateObject(core.REDIS_LIST, core.OBJ_ENCODING_LINKEDLIST, rl))
 
 	//将key添加到c.Db.ReadyKeys中，防止重复添加
 	c.Db.ReadyKeys[key] = nil

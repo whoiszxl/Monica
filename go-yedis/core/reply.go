@@ -4,7 +4,7 @@ import "Monica/go-yedis/encrypt"
 
 //添加回复
 func AddReply(c *YedisClients, o *YedisObject) {
-	c.Reply = o.Ptr.(string)
+	c.Reply = o.Ptr.(Sdshdr).Buf
 }
 
 //字符串回复

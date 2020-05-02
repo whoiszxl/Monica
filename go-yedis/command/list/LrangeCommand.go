@@ -14,8 +14,8 @@ func LrangeCommand(c *core.YedisClients, s *core.YedisServer) {
 		llen := list.Len
 
 		//设定start和end
-		start, err1 := strconv.Atoi(c.Argv[2].Ptr.(string))
-		end, err2 := strconv.Atoi(c.Argv[3].Ptr.(string))
+		start, err1 := strconv.Atoi(c.Argv[2].Ptr.(core.Sdshdr).Buf)
+		end, err2 := strconv.Atoi(c.Argv[3].Ptr.(core.Sdshdr).Buf)
 		if err1 != nil || err2 != nil {
 			core.AddReplyError(c, "(error) ERR value is not an integer or out of range")
 			return
@@ -48,7 +48,7 @@ func LrangeCommand(c *core.YedisClients, s *core.YedisServer) {
 			if node == nil {
 				break
 			}
-			result = result + node.Value.(string) + ","
+			result = result + node.Value.Ptr.(core.Sdshdr).Buf + ","
 			rangelen--
 		}
 

@@ -10,16 +10,16 @@ func GetrangeCommand(c *core.YedisClients, s *core.YedisServer) {
 	robj := core.LookupKey(c.Db.Dict, c.Argv[1])
 
 	//判断参数有效性
-	start, ok := c.Argv[2].Ptr.(string)
-	end, ok2 := c.Argv[3].Ptr.(string)
+	start, ok := c.Argv[2].Ptr.(core.Sdshdr)
+	end, ok2 := c.Argv[3].Ptr.(core.Sdshdr)
 	if !ok || !ok2 {
 		core.AddReplyStatus(c, "(error) ERR value is not an integer or out of range")
 		return
 	}
 
 	//参数转整型
-	startNum, err1 := strconv.Atoi(start)
-	endNum, err2 := strconv.Atoi(end)
+	startNum, err1 := strconv.Atoi(start.Buf)
+	endNum, err2 := strconv.Atoi(end.Buf)
 	if err1 != nil || err2 != nil {
 		core.AddReplyStatus(c, "(error) ERR value is not an integer or out of range")
 		return

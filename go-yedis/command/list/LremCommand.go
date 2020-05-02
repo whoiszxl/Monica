@@ -9,7 +9,7 @@ func LremCommand(c *core.YedisClients, s *core.YedisServer) {
 	//查找list是否存在
 	robj := core.LookupKey(c.Db.Dict, c.Argv[1])
 	if robj != nil {
-		count, err := strconv.Atoi(c.Argv[2].Ptr.(string))
+		count, err := strconv.Atoi(c.Argv[2].Ptr.(core.Sdshdr).Buf)
 		if err != nil {
 			core.AddReplyError(c, "(nil)")
 			return
@@ -23,7 +23,7 @@ func LremCommand(c *core.YedisClients, s *core.YedisServer) {
 		//	where = core.LIST_TAIL
 		//}
 
-		remValue := c.Argv[3].Ptr.(string)
+		remValue := c.Argv[3].Ptr.(core.Sdshdr).Buf
 		counter := 0
 		list := robj.Ptr.(*core.LinkedList)
 		if count == 0 {
@@ -34,7 +34,7 @@ func LremCommand(c *core.YedisClients, s *core.YedisServer) {
 				if node == nil {
 					break
 				}
-				if remValue == node.Value {
+				if remValue == node.Value.Ptr.(core.Sdshdr).Buf {
 					core.ListDelNode(list, node)
 					counter++
 				}

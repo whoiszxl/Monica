@@ -66,7 +66,9 @@ func (c *YedisClients) ProcessCommandInfo() error {
 			if count == 0 {
 				param = strings.ToLower(string(resp.Value))
 			}
-			c.Argv[count] = CreateObject(REDIS_STRING, OBJ_ENCODING_RAW, param)
+
+			//命令和参数都用sds对象包装
+			c.Argv[count] = CreateSdsObject(REDIS_STRING, param)
 		}
 		return nil
 	}
@@ -76,17 +78,18 @@ func (c *YedisClients) ProcessCommandInfo() error {
 //传入client，执行client中的命令
 func (s *YedisServer) ExecuteCommand(c *YedisClients) {
 
-	//quit命令单独处理
-	if c.Argv[0].Ptr.(string) == "quit" {
-		AddReplyStatus(c, "bye bye")
-		os.Exit(1)
-	}
-
 	//校验传入的命令有效性
-	commandName, ok := c.Argv[0].Ptr.(string)
+	commandNameSds, ok := c.Argv[0].Ptr.(Sdshdr)
 	if !ok {
 		log.Println("error cmd")
 		return
+	}
+	commandName := commandNameSds.Buf
+
+	//quit命令单独处理
+	if commandName == "quit" {
+		AddReplyStatus(c, "bye bye")
+		os.Exit(1)
 	}
 
 	//查找Yedis是否支持此命令

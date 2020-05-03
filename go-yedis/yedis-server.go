@@ -2,6 +2,7 @@ package main
 
 import (
 	"Monica/go-yedis/command/db"
+	"Monica/go-yedis/command/hash"
 	"Monica/go-yedis/command/list"
 	"Monica/go-yedis/command/sds"
 	"Monica/go-yedis/core"
@@ -244,6 +245,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	rpopCommand := &core.YedisCommand{Name: "rpop", CommandProc: list.RpopCommand, Arity: 2}
 	lremCommand := &core.YedisCommand{Name: "lrem", CommandProc: list.LremCommand, Arity: 4}
 
+	hsetCommand := &core.YedisCommand{Name: "hset", CommandProc: hash.HsetCommand, Arity: 4}
+
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
 		"set":      setCommand,
@@ -279,6 +282,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"lpop": lpopCommand,
 		"rpop": rpopCommand,
 		"lrem": lremCommand,
+
+		"hset": hsetCommand,
 	}
 
 }

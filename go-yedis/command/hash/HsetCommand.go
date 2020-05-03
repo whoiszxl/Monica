@@ -32,9 +32,10 @@ func HsetCommand(c *core.YedisClients, s *core.YedisServer) {
 func HashTypeSet(o *core.YedisObject, key *core.YedisObject, value *core.YedisObject) int {
 
 	if o.Encoding == core.OBJ_ENCODING_HT {
-		core.DictReplace(o.Ptr.(*core.DictMap), key, value)
+		result := core.DictReplace(o.Ptr.(core.DictMap), key, value)
+		return result
 	}
-
+	return -1
 }
 
 
@@ -52,7 +53,7 @@ func HashTypeLookupWriteOrCreate(c *core.YedisClients, key *core.YedisObject) *c
 		//hash存在,校验类型
 		if o.ObjectType != core.REDIS_HASH {
 			core.AddReplyError(c, "wrong type err")
-			return
+			return nil
 		}
 	}
 

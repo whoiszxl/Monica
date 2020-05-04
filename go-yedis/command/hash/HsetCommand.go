@@ -33,6 +33,10 @@ func HashTypeSet(o *core.YedisObject, key *core.YedisObject, value *core.YedisOb
 
 	if o.Encoding == core.OBJ_ENCODING_HT {
 		result := core.DictReplace(o.Ptr.(*core.DictHt), key, value)
+		if result == 1 {
+			//添加操作，增加已用
+			o.Ptr.(*core.DictHt).Used++
+		}
 		return result
 	}
 	return -1

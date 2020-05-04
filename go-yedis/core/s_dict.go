@@ -2,14 +2,12 @@ package core
 
 import "Monica/go-yedis/utils"
 
-//简化结构，使用go map + DictEntry, 将map作为一个数组来使用，key为用户输入key经过hash计算并与数组大小取余，
-//YedisObject中Ptr直接指向一个DictEntry，然后DictEntry作为单链表头继续保存有hash碰撞的值
 type DictMap map[int]*DictEntry
 
-
 //HashTable 哈希表
+//Redis源码是再使用了一个Dict对象包裹，此处简化只用DictHt字典哈希表，直接 key->DictHt
 type DictHt struct {
-	Table [4]DictEntry //指针数组，用于存储键值对
+	Table DictMap //指针数组，用于存储键值对
 	Size int //table数组的大小
 	SizeMask int //掩码 = size -1
 	Used int //table数组已用的元素个数，包含next单链表的数据
@@ -34,20 +32,20 @@ type DictHash struct {
 }
 
 //
-func DictReplace(ht DictMap, key *YedisObject, value *YedisObject) int {
+func DictReplace(ht *DictHt, key *YedisObject, value *YedisObject) int {
 	//获取key的hash值并取余获得下标
 	encodingHash := utils.Times33Encoding(key.Ptr.(Sdshdr).Buf)
 	index := encodingHash % DEFAULT_HASH_LEN
 
 	//查找数组index下标位置的元素是否存在
-	dictEntry := ht[int(index)]
+	dictEntry := ht.Table[int(index)]
 	if dictEntry == nil {
 		//创建一个新的dictEntry并设置进去
 		dictEntry = new(DictEntry)
 		dictEntry.Key = key.Ptr
 		dictEntry.Next = nil
 		dictEntry.Value = value.Ptr
-		ht[int(index)] = dictEntry
+		ht.Table[int(index)] = dictEntry
 		return 1
 	}else {
 		//不为nil则需要遍历并比对是否存在，存在则覆盖，不存在则添加到单链表头
@@ -56,13 +54,15 @@ func DictReplace(ht DictMap, key *YedisObject, value *YedisObject) int {
 		isSet := false
 
 		for {
-			current := iterator.Next
+			current := DictEntryNext(iterator)
 			if current == nil {
 				break
 			}
-			if key.Ptr.(string) == current.Value.(Sdshdr).Buf {
-				current.Value = value
+
+			if key.Ptr.(Sdshdr).Buf == current.Key.(Sdshdr).Buf {
+				current.Value = value.Ptr
 				isSet = true
+				break
 			}
 		}
 
@@ -72,7 +72,7 @@ func DictReplace(ht DictMap, key *YedisObject, value *YedisObject) int {
 			newDictEntry.Key = key.Ptr
 			newDictEntry.Next = dictEntry
 			newDictEntry.Value = value.Ptr
-			ht[int(index)] = newDictEntry
+			ht.Table[int(index)] = newDictEntry
 			return 1
 		}
 	}
@@ -89,6 +89,15 @@ type DictEntryIter struct {
 
 func DictEntryGetIterator(dictEntry *DictEntry) *DictEntryIter {
 	iter := new(DictEntryIter)
-	iter.Next = dictEntry.Next
+	iter.Next = dictEntry
 	return iter
+}
+
+//获取迭代器当前指向的节点，并将指针移动一位
+func DictEntryNext(iter *DictEntryIter) *DictEntry {
+	current := iter.Next
+	if current != nil {
+		iter.Next = current.Next
+	}
+	return current
 }

@@ -48,9 +48,12 @@ func TryObjectEncoding(lobj *YedisObject) *YedisObject {
 //创建一个hash表对象
 func CreateHashObject() *YedisObject {
 
-	maps := make(DictMap, DEFAULT_HASH_LEN)
-
-	o := CreateObject(REDIS_HASH, OBJ_ENCODING_HT, maps)
+	ht := new(DictHt)
+	ht.Table = make(DictMap, DEFAULT_HASH_LEN)
+	ht.Size = DEFAULT_HASH_LEN
+	ht.SizeMask = DEFAULT_HASH_LEN - 1
+	ht.Used = 0
+	o := CreateObject(REDIS_HASH, OBJ_ENCODING_HT, ht)
 	return o
 }
 

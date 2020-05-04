@@ -32,7 +32,7 @@ func HsetCommand(c *core.YedisClients, s *core.YedisServer) {
 func HashTypeSet(o *core.YedisObject, key *core.YedisObject, value *core.YedisObject) int {
 
 	if o.Encoding == core.OBJ_ENCODING_HT {
-		result := core.DictReplace(o.Ptr.(core.DictMap), key, value)
+		result := core.DictReplace(o.Ptr.(*core.DictHt), key, value)
 		return result
 	}
 	return -1

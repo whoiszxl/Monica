@@ -30,6 +30,7 @@ func HdelCommand(c *core.YedisClients, s *core.YedisServer) {
 	//如果下标的链表只有一个元素，直接删除
 	if entry.Next == nil {
 		delete(htTable, int(index))
+		ht.Used--
 		core.AddReplyStatus(c, "(integer) 1")
 		return
 	}
@@ -51,6 +52,7 @@ func HdelCommand(c *core.YedisClients, s *core.YedisServer) {
 				//删除这个节点，将上一个的节点指向下下个
 				prev.Next = current.Next
 			}
+			ht.Used--
 			core.AddReplyStatus(c, "(integer) 1")
 			return
 		}

@@ -30,6 +30,9 @@ func SaddCommand(c *core.YedisClients, s *core.YedisServer) {
 	if added > 0 {
 		//signalModifiedKey(c,c->db,c->argv[1]);
 		//notifyKeyspaceEvent(NOTIFY_SET,"sadd",c->argv[1],c->db->id);
+
+		//增加HT的used引用,直接用golang原生len方法，也是O(1)复杂度
+		set.Ptr.(*core.DictHt).Used = len(set.Ptr.(*core.DictHt).Table)
 	}
 
 	s.Dirty += added

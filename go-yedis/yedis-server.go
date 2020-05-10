@@ -255,6 +255,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 	saddCommand := &core.YedisCommand{Name: "sadd", CommandProc: set.SaddCommand, Arity: 0}
 	scardCommand := &core.YedisCommand{Name: "scard", CommandProc: set.ScardCommand, Arity: 2}
+	sismemberCommand := &core.YedisCommand{Name: "scard", CommandProc: set.SismemberCommand, Arity: 3}
 
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
@@ -301,6 +302,7 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 
 		"sadd": saddCommand,
 		"scard": scardCommand,
+		"sismember": sismemberCommand,
 	}
 
 }

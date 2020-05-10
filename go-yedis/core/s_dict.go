@@ -2,7 +2,7 @@ package core
 
 import "Monica/go-yedis/utils"
 
-type DictMap map[int]*DictEntry
+type DictMap map[interface{}]*DictEntry
 
 //HashTable 哈希表
 //Redis源码是再使用了一个Dict对象包裹，此处简化只用DictHt字典哈希表，直接 key->DictHt

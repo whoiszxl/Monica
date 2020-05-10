@@ -5,6 +5,7 @@ import (
 	"Monica/go-yedis/command/hash"
 	"Monica/go-yedis/command/list"
 	"Monica/go-yedis/command/sds"
+	"Monica/go-yedis/command/set"
 	"Monica/go-yedis/core"
 	"Monica/go-yedis/utils"
 	"flag"
@@ -252,6 +253,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 	hexistsCommand := &core.YedisCommand{Name: "hexists", CommandProc: hash.HexistsCommand, Arity: 3}
 	hdelCommand := &core.YedisCommand{Name: "hdel", CommandProc: hash.HdelCommand, Arity: 0}
 
+	saddCommand := &core.YedisCommand{Name: "sadd", CommandProc: set.SaddCommand, Arity: 0}
+
 	yedis.Commands = map[string]*core.YedisCommand{
 		"get":      getCommand,
 		"set":      setCommand,
@@ -294,6 +297,8 @@ func initServer(netConfig utils.NetConfig, dbConfig utils.DbConfig, aofConfig ut
 		"hgetall": hgetallCommand,
 		"hexists": hexistsCommand,
 		"hdel": hdelCommand,
+
+		"sadd": saddCommand,
 	}
 
 }

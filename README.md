@@ -6,7 +6,7 @@
 
 
 ### 手册进度
-▓▓░░░░░░░░░░░░░░░░░░░ 6% Go-Yedis开发中，已完成最基础的string，hash，list指令，简单的aof持久化，控制台交互。
+▓▓░░░░░░░░░░░░░░░░░░░ 8% Go-Yedis开发中，已完成最基础的string，hash，list，set指令，简单的aof持久化，控制台交互。
 
 ### 手册介绍
 记录当前学习造轮子的笔记手册，用简单的代码实现一些经典的软件框架等，如Redis,MySQL，Rpc，MyBatis，Spring等。

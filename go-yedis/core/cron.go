@@ -78,7 +78,6 @@ func ServerCron(loop *AeEventLoop, server *YedisServer) int {
 
 //统计记录服务器执行命令的次数
 func trackOperationsPerSecond(server *YedisServer) int {
-	fmt.Println("TODO 统计记录服务器执行命令的次数")
 	return 1
 }
 

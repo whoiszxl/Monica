@@ -24,7 +24,7 @@ Yedis通过Golang语言实现一个简略版的Redis单机键值对数据库，�
 | Redis设计与实现 |          | https://book.douban.com/subject/25900156/                |
 
 ### Yedis项目演示
-xx todo
+![项目演示](https://oss.whoiszxl.com/demo.gif)
 
 
 ### 项目构建与运行
